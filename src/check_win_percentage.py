@@ -85,21 +85,19 @@ def get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic):
 
     return ans_dic
 
-def draw_transition(batch, transition_dic, input_keys):
+def draw_transition(batch, transition_dic, all_win_p_transition_list, input_keys):
     for key in input_keys:
         x = list(range(batch, batch + len(transition_dic[key])))
-
-        # y_win_p = [tpl[0] for tpl in transition_dic[key]]
-        # y_freq = [tpl[1] for tpl in transition_dic[key]]
         y_importance = [tpl[2] for tpl in transition_dic[key]]
-
         plt.plot(x, y_importance, label=key)
 
-
-    plt.title("重要度推移")
+    plt.title("重要度推移 (batch={0:d})".format(batch))
     plt.ylabel("重要度")
     plt.xlabel("対局ID")
 
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + len(all_win_p_transition_list))
+    plt.xticks(list(range(batch, batch + len(all_win_p_transition_list), 20)))
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -113,17 +111,21 @@ def draw_transition(batch, transition_dic, input_keys):
 
     for key in input_keys:
         x = list(range(batch, batch + len(transition_dic[key])))
-
         y_win_p = [tpl[0] for tpl in transition_dic[key]]
-        # y_freq = [tpl[1] for tpl in transition_dic[key]]
-        # y_importance = [tpl[2] for tpl in transition_dic[key]]
-
         plt.plot(x, y_win_p, label=key)
 
-    plt.title("勝率推移")
+    #総合勝率
+    x = list(range(batch, batch + len(all_win_p_transition_list)))
+    plt.plot(x, all_win_p_transition_list, label="all")
+
+    plt.title("勝率推移 (batch={0:d})".format(batch))
     plt.ylabel("勝率")
     plt.xlabel("対局ID")
 
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + len(all_win_p_transition_list))
+    plt.xticks(list(range(batch, batch + len(all_win_p_transition_list), 20)))
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -142,6 +144,7 @@ def main(batch, topn):
     if log_size < batch:
         batch = log_size
 
+    all_win_p_transition_list = [] #全体での勝率の推移を記録するためのリスト
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1
@@ -149,12 +152,15 @@ def main(batch, topn):
         win_num_dic, lose_num_dic = read_batch_csv(batch_csv)
         wfi_dic = get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic)
 
+        all_win_p_in_batch = 1.0 * sum([v for k,v in win_num_dic.items()]) / batch
+        all_win_p_transition_list.append(all_win_p_in_batch)
+
         for key, val in wfi_dic.items():
             transition_dic[key].append(val)
 
 
     input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
-    draw_transition(batch, transition_dic, input_keys)
+    draw_transition(batch, transition_dic, all_win_p_transition_list,input_keys)
 
     end_kif_ind = log_size - 1
     start_kif_ind = end_kif_ind - batch
