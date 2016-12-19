@@ -3,8 +3,9 @@ kif/*.csa
 
 win_percentage_dir_*
 
-trash
-
 shogi_log.csv
 not_reviewd_kifs.csv
 graph/*.png
+
+trash
+cache

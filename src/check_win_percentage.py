@@ -104,7 +104,7 @@ def draw_transition(batch, transition_dic, all_win_p_transition_list, input_keys
 
     # 右側の余白を調整
     plt.subplots_adjust(right=0.5, top=0.5)
-    plt.savefig("graph/importance.png")
+    plt.savefig("graph/b{0:03d}_importance.png".format(batch))
     plt.clf()
 
 ######################################################
@@ -132,7 +132,7 @@ def draw_transition(batch, transition_dic, all_win_p_transition_list, input_keys
 
     # 右側の余白を調整
     plt.subplots_adjust(right=0.5, top=0.5)
-    plt.savefig("graph/win_p.png")
+    plt.savefig("graph/b{0:03d}_win_p.png".format(batch))
     plt.clf()
 
     return
