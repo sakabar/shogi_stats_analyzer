@@ -1,9 +1,16 @@
+"""Check Win Percentage
+
+Usage: check_win_percentage.py <batch> <topn>
+       check_win_percentage.py -h | --help
+
+Options:
+    -h, --help  show this help message and exit
+"""
+
 from collections import defaultdict
+from docopt import docopt
 import matplotlib.pyplot as plt
 import sys
-
-
-
 
 def read_batch_csv(batch_csv):
     win_num_dic  = {} #戦型 -> 勝数の辞書
@@ -129,18 +136,15 @@ def draw_transition(batch, transition_dic, input_keys):
     return
 
 
-def main():
+def main(batch, topn):
     csv_tuples = [line.rstrip().replace('"', '').split(',') for line in sys.stdin]
-
     log_size = len(csv_tuples)
-    batch = 100
     if log_size < batch:
         batch = log_size
 
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1
-        # print("%d %d" % (start_kif_ind, end_kif_ind))
         batch_csv = csv_tuples[start_kif_ind:end_kif_ind + 1]
         win_num_dic, lose_num_dic = read_batch_csv(batch_csv)
         wfi_dic = get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic)
@@ -149,7 +153,6 @@ def main():
             transition_dic[key].append(val)
 
 
-    topn = 5
     input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
     draw_transition(batch, transition_dic, input_keys)
 
@@ -166,4 +169,7 @@ def main():
     return
 
 if __name__ == '__main__':
-    main()
+    args = docopt(__doc__)
+    batch = int(args["<batch>"])
+    topn = int(args["<topn>"])
+    main(batch, topn)
