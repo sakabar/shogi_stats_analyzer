@@ -159,17 +159,19 @@ def main(batch, topn):
             transition_dic[key].append(val)
 
 
-    input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
-    draw_transition(batch, transition_dic, all_win_p_transition_list,input_keys)
-
     end_kif_ind = log_size - 1
-    start_kif_ind = end_kif_ind - batch
+    start_kif_ind = end_kif_ind - batch + 1
     last_batch_csv = csv_tuples[start_kif_ind:end_kif_ind + 1]
     win_num_dic, lose_num_dic = read_batch_csv(last_batch_csv)
     output_win_lose_num_dic(batch, win_num_dic, lose_num_dic)
-    with open("win_percentage_kifs_b{0:03d}.csv".format(batch), 'w') as f:
-        f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
-        f.write("\n")
+
+    if batch < log_size:
+        input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
+        draw_transition(batch, transition_dic, all_win_p_transition_list,input_keys)
+
+        with open("win_percentage_kifs_b{0:03d}.csv".format(batch), 'w') as f:
+            f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
+            f.write("\n")
 
 
     return
