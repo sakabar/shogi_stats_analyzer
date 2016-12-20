@@ -167,7 +167,7 @@ def main(batch, topn):
     last_batch_csv = csv_tuples[start_kif_ind:end_kif_ind + 1]
     win_num_dic, lose_num_dic = read_batch_csv(last_batch_csv)
     output_win_lose_num_dic(batch, win_num_dic, lose_num_dic)
-    with open("win_percentage_kifs.csv", 'w') as f:
+    with open("win_percentage_kifs_b{0:03d}.csv".format(batch), 'w') as f:
         f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
         f.write("\n")
 
