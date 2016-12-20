@@ -143,6 +143,8 @@ def main(batch, topn):
     log_size = len(csv_tuples)
     if log_size < batch:
         batch = log_size
+    elif batch == 0 or log_size == 0:
+        raise Exception("batch_size or log_size == 0")
 
     all_win_p_transition_list = [] #全体での勝率の推移を記録するためのリスト
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
