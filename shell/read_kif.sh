@@ -3,6 +3,10 @@
 
 set -u
 
+#Usage: shell/read_kif.sh hoge.kif
+#1. hoge.kif名前を対局開始時間に基づいて変換し、kifディレクトリ以下に保存
+#2. 対局情報をcsv形式で出力 (shogi_log.csvに手動で追記する必要あり)
+
 if [[ $# -ne 1 ]]; then
     echo "$0 : Argument Error: <kif_file>">&2
     exit 1
