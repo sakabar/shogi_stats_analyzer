@@ -13,7 +13,7 @@
 
 基本的にはぴよ将棋で出力したkifファイル(piyo_*.kif)を`SSA_HOME`に保存し、`shell/piyo_read_kif`を実行してkifディレクトリ以下に譜棋を移動し、`shogi_log.csv`の情報を編集してください。
 
-`shell/check_win_percentage.sh`を実行すると、最新50局の対局情報を集計した戦型ごとの情報が`win_percentage.txt`に出力されると同時に、重要度top5の戦型の勝率・重要度の推移を`graph`ディレクトリ以下に出力します。
+`shell/check_win_percentage.sh`を実行すると、最新100局の対局情報を集計した戦型ごとの情報が`win_percentage.txt`に出力されると同時に、重要度top5の戦型の勝率・重要度の推移を`graph`ディレクトリ以下に出力します。また、先手・後手・総合の勝率推移のグラフも出力されます。
 
 
 ## 追加予定

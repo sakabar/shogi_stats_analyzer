@@ -92,7 +92,7 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
         y_importance = [tpl[2] for tpl in transition_dic[key]]
         plt.plot(x, y_importance, label=key)
 
-    plt.title("重要度推移 (batch={0:d})".format(batch))
+    plt.title("重要度推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("重要度")
     plt.xlabel("対局ID")
 
@@ -118,7 +118,7 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
         y_win_p = [tpl[0] for tpl in transition_dic[key]]
         plt.plot(x, y_win_p, label=key)
 
-    plt.title("勝率推移 (batch={0:d})".format(batch))
+    plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("勝率")
     plt.xlabel("対局ID")
 
@@ -157,7 +157,7 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
     #後手勝率
     plt.plot(x, gote_win_p_transition_list, label="後手")
 
-    plt.title("勝率推移 (batch={0:d})".format(batch))
+    plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("勝率")
     plt.xlabel("対局ID")
 
