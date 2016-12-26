@@ -137,11 +137,19 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
     return
 
 def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list):
+
+    #先手後手の対局数が同じ場合の全体勝率
+    weighed_all_win_p_transition_list = [0.5 * tpl[0] + 0.5 * tpl[1] for tpl in zip(sente_win_p_transition_list, gote_win_p_transition_list)]
+
     plt.clf()
 
-    #総合勝率
     x = list(range(batch, batch + transition_size))
-    plt.plot(x, all_win_p_transition_list, label="all")
+
+    # 全体勝率は表示しないことにした
+    # plt.plot(x, all_win_p_transition_list, label="all")
+
+    #重み付き全体勝率
+    plt.plot(x, weighed_all_win_p_transition_list, label="weighed_all")
 
     #先手勝率
     plt.plot(x, sente_win_p_transition_list, label="先手")
