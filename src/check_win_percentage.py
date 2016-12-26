@@ -85,19 +85,20 @@ def get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic):
 
     return ans_dic
 
-def draw_transition(batch, transition_dic, all_win_p_transition_list, input_keys):
+def draw_importrance(batch, transition_dic, transition_size, input_keys):
+    plt.clf()
     for key in input_keys:
         x = list(range(batch, batch + len(transition_dic[key])))
         y_importance = [tpl[2] for tpl in transition_dic[key]]
         plt.plot(x, y_importance, label=key)
 
-    plt.title("重要度推移 (batch={0:d})".format(batch))
+    plt.title("重要度推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("重要度")
     plt.xlabel("対局ID")
 
     #X,Y軸の範囲
-    plt.xlim(batch, batch + len(all_win_p_transition_list))
-    plt.xticks(list(range(batch, batch + len(all_win_p_transition_list), 20)))
+    plt.xlim(batch, batch + transition_size)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -107,33 +108,81 @@ def draw_transition(batch, transition_dic, all_win_p_transition_list, input_keys
     plt.savefig("graph/b{0:03d}_importance.png".format(batch))
     plt.clf()
 
-######################################################
+    return
 
+
+def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
+    plt.clf()
     for key in input_keys:
         x = list(range(batch, batch + len(transition_dic[key])))
         y_win_p = [tpl[0] for tpl in transition_dic[key]]
         plt.plot(x, y_win_p, label=key)
 
-    #総合勝率
-    x = list(range(batch, batch + len(all_win_p_transition_list)))
-    plt.plot(x, all_win_p_transition_list, label="all")
-
-    plt.title("勝率推移 (batch={0:d})".format(batch))
+    plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("勝率")
     plt.xlabel("対局ID")
 
-
     #X,Y軸の範囲
-    plt.xlim(batch, batch + len(all_win_p_transition_list))
-    plt.xticks(list(range(batch, batch + len(all_win_p_transition_list), 20)))
+    plt.xlim(batch, batch + transition_size)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
 
     # 右側の余白を調整
     plt.subplots_adjust(right=0.5, top=0.5)
-    plt.savefig("graph/b{0:03d}_win_p.png".format(batch))
+    plt.savefig("graph/b{0:03d}_tactics_win_p.png".format(batch))
     plt.clf()
+
+    return
+
+def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list):
+
+    #先手後手の対局数が同じ場合の全体勝率
+    weighed_all_win_p_transition_list = [0.5 * tpl[0] + 0.5 * tpl[1] for tpl in zip(sente_win_p_transition_list, gote_win_p_transition_list)]
+
+    plt.clf()
+
+    x = list(range(batch, batch + transition_size))
+
+    # 全体勝率は表示しないことにした
+    # plt.plot(x, all_win_p_transition_list, label="all")
+
+    #重み付き全体勝率
+    plt.plot(x, weighed_all_win_p_transition_list, label="weighed_all")
+
+    #先手勝率
+    plt.plot(x, sente_win_p_transition_list, label="先手")
+
+    #後手勝率
+    plt.plot(x, gote_win_p_transition_list, label="後手")
+
+    plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
+    plt.ylabel("勝率")
+    plt.xlabel("対局ID")
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + transition_size)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
+    plt.ylim(0.35, 0.55)
+    plt.yticks([ y / 100.0 for y in range(35, 55, 5)])
+
+
+    #loc='lower right'で、右下に凡例を表示
+    plt.legend()
+
+    # 右側の余白を調整
+    # plt.subplots_adjust(right=0.5, top=0.5)
+
+    plt.savefig("graph/b{0:03d}_sengo_win_p.png".format(batch))
+    plt.clf()
+
+    return
+
+
+def draw_transition(batch, transition_dic, transition_size, input_keys):
+    draw_importrance(batch, transition_dic, transition_size, input_keys)
+    draw_tactics_win_p(batch, transition_dic, transition_size, input_keys)
 
     return
 
@@ -147,7 +196,11 @@ def main(batch, topn):
         raise Exception("batch_size or log_size == 0")
 
     all_win_p_transition_list = [] #全体での勝率の推移を記録するためのリスト
+    sente_win_p_transition_list = [] #先手での勝率の推移を記録するためのリスト
+    gote_win_p_transition_list = [] #後手での勝率の推移を記録するためのリスト
+
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
+
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1
         batch_csv = csv_tuples[start_kif_ind:end_kif_ind + 1]
@@ -155,7 +208,17 @@ def main(batch, topn):
         wfi_dic = get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic)
 
         all_win_p_in_batch = 1.0 * sum([v for k,v in win_num_dic.items()]) / batch
+        sente_win = sum([v for k,v in win_num_dic.items()  if k[0] == "先手"])
+        sente_lose = sum([v for k,v in lose_num_dic.items() if k[0] == "先手"])
+        sente_win_p_in_batch = 1.0 * sente_win / (sente_win + sente_lose)
+
+        gote_win = sum([v for k,v in win_num_dic.items() if k[0] == "後手"])
+        gote_lose = sum([v for k,v in lose_num_dic.items() if k[0] == "後手"])
+        gote_win_p_in_batch = 1.0 * gote_win / (gote_win + gote_lose)
+
         all_win_p_transition_list.append(all_win_p_in_batch)
+        sente_win_p_transition_list.append(sente_win_p_in_batch)
+        gote_win_p_transition_list.append(gote_win_p_in_batch)
 
         for key, val in wfi_dic.items():
             transition_dic[key].append(val)
@@ -169,7 +232,10 @@ def main(batch, topn):
 
     if batch < log_size:
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
-        draw_transition(batch, transition_dic, all_win_p_transition_list,input_keys)
+        transition_size = log_size - batch + 1
+        draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list)
+        draw_transition(batch, transition_dic, transition_size, input_keys)
+
 
         with open("win_percentage_kifs_b{0:03d}.csv".format(batch), 'w') as f:
             f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
