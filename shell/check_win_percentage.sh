@@ -25,4 +25,6 @@ cat $tmp_file | $py_cmd src/check_win_percentage.py 100 5  | column -t > win_per
 cat $tmp_file | $py_cmd src/check_win_percentage.py $log_size 5  | column -t > win_percentage_all.txt &
 wait
 
+shell/listup_not_reviewed_kifs.sh > not_reviewed_kifs.csv
+
 rm -rf $tmp_file
