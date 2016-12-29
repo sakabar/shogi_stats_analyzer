@@ -2,4 +2,7 @@
 
 set -u
 
-mv -i ~/Dropbox/shogi/ssa_share/piyo*.kif .
+for f in ~/Dropbox/shogi/ssa_share/piyo*.kif; do
+    echo $f:t >&2
+    mv -i $f .
+done

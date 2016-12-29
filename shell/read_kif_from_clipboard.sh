@@ -15,7 +15,10 @@ else
 fi
 
 clipboard_text=$(mktemp -t tmp_file)
-pbpaste > $clipboard_text
+echo -n "clipboard:[">&2
+pbpaste | tee $clipboard_text >&2
+echo "]">&2
+
 kif_file=$(cat $clipboard_text | grep -o -m 1 "[0-9]\{8\}_[0-9]\{4\}")".kif"
 
 if [[ $kif_file = ".kif" ]]; then
