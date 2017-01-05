@@ -10,7 +10,7 @@ set -u
 trash_dir=cache/trash$(date "+%y%m%d_%H%M")
 mkdir -p $trash_dir
 
-for f in piyo_*.kif; do
+ls -U | grep -e "^81Dojo-.*\.kif$" -e "^piyo_.*.kif$" | while read f; do
     shell/read_kif.sh $f
 
     #正しく読み込め棋譜のみ移動
@@ -18,4 +18,3 @@ for f in piyo_*.kif; do
         mv $f $trash_dir
     fi
 done | sort >> shogi_log.csv
-
