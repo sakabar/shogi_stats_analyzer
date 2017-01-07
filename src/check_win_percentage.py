@@ -179,12 +179,70 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
 
     return
 
+#レーティング推移をグラフ化し、保存
+def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, ignore_app_list=[]):
+    plt.clf()
+    x = list(range(batch, batch + transition_size))
+
+    for app in app_set:
+        if app in ignore_app_list:
+            continue
+        #複数のサイトでのレーティングを0-999の範囲にたたみこむ
+        #この方法だと、81Dojoで1000近辺の人はレーティングが正しく表示されない。
+        #また、今後長期間
+        y = [avg_dic[app] for avg_dic in avg_rating_transition_list]
+        y_small = [(rating - 1000.0) if rating >= 1000 else rating for rating in y]
+        plt.plot(x, y_small, label=app)
+
+    plt.title("平均レーティング推移 (直近{0:d}局ごと)".format(batch))
+    plt.ylabel("レーティング")
+    plt.xlabel("対局ID")
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + transition_size)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
+    # plt.ylim(0.35, 0.55)
+    # plt.yticks([ y / 100.0 for y in range(35, 55, 5)])
+
+
+    #loc='lower right'で、右下に凡例を表示
+    # 凡例は表示しない
+    # plt.legend()
+
+    # 右側の余白を調整
+    # plt.subplots_adjust(right=0.5, top=0.5)
+
+    plt.savefig("graph/b{0:03d}_avg_rating.png".format(batch))
+    plt.clf()
 
 def draw_transition(batch, transition_dic, transition_size, input_keys):
     draw_importrance(batch, transition_dic, transition_size, input_keys)
     draw_tactics_win_p(batch, transition_dic, transition_size, input_keys)
 
     return
+
+#n棋譜ぶんのCSV情報を引数として、その棋譜内での各アプリでの平均レーティングを求める
+def get_avg_rating_dict(batch_csv, ignore_app_list=[]):
+    avg_rating_dict = defaultdict(float) #アプリ名をキー、平均レーティングを値とする辞書
+    app_sum_dict = defaultdict(float)
+    app_cnt_dict = defaultdict(int) #アプリ名をキー、出現回数を値とする辞書
+    for kif_data in batch_csv:
+        if kif_data[3] in ignore_app_list:
+            continue
+
+        app = kif_data[1]
+        rating = float(kif_data[3])
+
+        app_cnt_dict[app] += 1
+        app_sum_dict[app] += rating
+
+    for app,cnt in app_cnt_dict.items():
+        avg_rating_dict[app] = app_sum_dict[app] / app_cnt_dict[app]
+
+    return avg_rating_dict
+
+
+
 
 
 def main(batch, topn):
@@ -200,6 +258,12 @@ def main(batch, topn):
     gote_win_p_transition_list = [] #後手での勝率の推移を記録するためのリスト
 
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
+
+    avg_rating_transition_list = [] #レーティングの推移を記録するためのリスト
+    #レーティング推移を記録しないアプリ一覧
+    ignore_app_list = ["不明", "対面", "激指R", "将棋ウォーズp", "将棋ウォーズ(3切れ)", "将棋ウォーズ(10秒)"]
+
+    app_set = set([tpl[1] for tpl in csv_tuples])
 
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1
@@ -220,6 +284,9 @@ def main(batch, topn):
         sente_win_p_transition_list.append(sente_win_p_in_batch)
         gote_win_p_transition_list.append(gote_win_p_in_batch)
 
+        avg_rating_dict = get_avg_rating_dict(batch_csv, ignore_app_list)
+        avg_rating_transition_list.append(avg_rating_dict)
+
         for key, val in wfi_dic.items():
             transition_dic[key].append(val)
 
@@ -233,6 +300,7 @@ def main(batch, topn):
     if batch < log_size:
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
+        draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)
 
