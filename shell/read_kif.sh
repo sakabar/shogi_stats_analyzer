@@ -15,7 +15,7 @@ fi
 input_kif_file=$1
 
 tmp_file=`mktemp -t tmpfile_`
-cat $input_kif_file | nkf -w | nkf -Lu | grep -v "^$" > $tmp_file
+cat $input_kif_file | nkf -w -Lu | grep -v "^$" > $tmp_file
 
 #開始日時：2016年11月16日(水) 12:25:10
 new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
