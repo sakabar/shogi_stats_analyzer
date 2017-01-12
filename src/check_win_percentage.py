@@ -136,7 +136,7 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
 
     return
 
-def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list):
+def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list):
 
     #先手後手の対局数が同じ場合の全体勝率
     weighed_all_win_p_transition_list = [0.5 * tpl[0] + 0.5 * tpl[1] for tpl in zip(sente_win_p_transition_list, gote_win_p_transition_list)]
@@ -156,6 +156,9 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
 
     #後手勝率
     plt.plot(x, gote_win_p_transition_list, label="後手")
+
+    #先手の割合
+    plt.plot(x, sente_ratio_transition_list, label="先手割合")
 
     plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("勝率")
@@ -263,6 +266,7 @@ def main(batch, topn):
     all_win_p_transition_list = [] #全体での勝率の推移を記録するためのリスト
     sente_win_p_transition_list = [] #先手での勝率の推移を記録するためのリスト
     gote_win_p_transition_list = [] #後手での勝率の推移を記録するためのリスト
+    sente_ratio_transition_list = [] #batch中の先手番の割合
 
     transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
 
@@ -287,6 +291,7 @@ def main(batch, topn):
         gote_lose = sum([v for k,v in lose_num_dic.items() if k[0] == "後手"])
         gote_win_p_in_batch = 1.0 * gote_win / (gote_win + gote_lose)
 
+        sente_ratio_transition_list.append(1.0 * (sente_win + sente_lose) / batch)
         all_win_p_transition_list.append(all_win_p_in_batch)
         sente_win_p_transition_list.append(sente_win_p_in_batch)
         gote_win_p_transition_list.append(gote_win_p_in_batch)
@@ -308,7 +313,7 @@ def main(batch, topn):
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, ignore_app_list)
-        draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list)
+        draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)
 
 
