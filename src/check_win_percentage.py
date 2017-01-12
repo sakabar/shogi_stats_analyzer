@@ -97,8 +97,8 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
     plt.xlabel("対局ID")
 
     #X,Y軸の範囲
-    plt.xlim(batch, batch + transition_size)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -123,8 +123,8 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
     plt.xlabel("対局ID")
 
     #X,Y軸の範囲
-    plt.xlim(batch, batch + transition_size)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -161,11 +161,18 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
     plt.ylabel("勝率")
     plt.xlabel("対局ID")
 
+    #点線の補助線を描画
+    for i in range(30, 70+1, 5):
+        p = i / 100.0
+        plt.plot([batch, batch+transition_size-1], [p, p], ':')
+
+
     #X,Y軸の範囲
-    plt.xlim(batch, batch + transition_size)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
-    plt.ylim(0.35, 0.55)
-    plt.yticks([ y / 100.0 for y in range(35, 55, 5)])
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    # plt.ylim(0.3, 0.6)
+    plt.ylim(0.2, 1.0)
+    plt.yticks([ y / 100.0 for y in range(20, 100, 5)])
 
 
     #loc='lower right'で、右下に凡例を表示
@@ -199,8 +206,8 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     plt.xlabel("対局ID")
 
     #X,Y軸の範囲
-    plt.xlim(batch, batch + transition_size)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size])
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     # plt.ylim(0.35, 0.55)
     # plt.yticks([ y / 100.0 for y in range(35, 55, 5)])
 
