@@ -1,13 +1,19 @@
 kif/*.kif
 kif/*.csa
 
-win_percentage_dir_*
+win_percentage*
 
 shogi_log.csv
 not_reviewd_kifs.csv
 graph/*.png
 
-trash
+#不要なデータを置く(後で復活できるように、削除はしない)
 cache
 
+#バックアップフォルダ
+backup
+
+#まだ反省していない棋譜
 not_reviewed_kifs.csv
+
+error.txt
