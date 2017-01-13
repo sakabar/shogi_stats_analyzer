@@ -215,14 +215,14 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
     plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
-    x_max = 1000
+    x_max = 500
     plt.ylim(0, x_max)
     plt.yticks(list(range(0, x_max + 1, 50)))
 
 
     #loc='lower right'で、右下に凡例を表示
     # 凡例は表示しない。対局相手の平均レートを表示するときにはアンコメントしたほうがいいかもしれない。
-    # plt.legend()
+    plt.legend()
 
     # 右側の余白を調整
     # plt.subplots_adjust(right=0.5, top=0.5)
