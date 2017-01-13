@@ -10,6 +10,7 @@ set -u
 } | sort -k1,1 | uniq > not_reviewed_kifs.csv
 
 output_dir=~/Dropbox/shogi/ssa_share/todo_kifs
+rm -rf $output_dir
 mkdir -p $output_dir
 cat not_reviewed_kifs.csv | cut -d ',' -f1 | tr -d '"' | while read f; do
     cat kif/$f | nkf -Lm -s > $output_dir/$f:t

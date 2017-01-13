@@ -146,7 +146,7 @@ battle_time=""
 aite_level=""
 if [[ $field = "将棋ウォーズ(10分)" ]];then
     field="将棋ウォーズ"
-    battle_time="10-0"
+    battle_time="00:10+00"
     if [[ $teban = "先手" ]]; then
         aite_dankyu=$(cat $new_file_name | grep "^後手" | head -n1 | grep -E -o "[0-9]+級|初段|二段|三段|四段")
     else
