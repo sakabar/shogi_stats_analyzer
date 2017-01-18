@@ -8,7 +8,7 @@ if [ $# -ne 0 ]; then
 fi
 
 #kifディレクトリとshogi_log.csvをバックアップする
-backup_dir=backup/backup_$(date "+%Y%m%d_%H%M")
+backup_dir=backup/backup_$(date "+%Y%m%d_%H%M%S")
 mkdir -p $backup_dir
 cp -a kif shogi_log.csv $backup_dir
 tar zcf ${backup_dir}.tar.gz -C $backup_dir:h $backup_dir:t
