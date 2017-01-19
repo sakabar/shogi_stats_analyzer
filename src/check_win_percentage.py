@@ -1,6 +1,6 @@
 """Check Win Percentage
 
-Usage: check_win_percentage.py <batch> <topn>
+Usage: check_win_percentage.py <win_percentage_dir> <batch> <topn>
        check_win_percentage.py -h | --help
 
 Options:
@@ -269,7 +269,7 @@ def get_avg_rating_dict(batch_csv, ignore_app_list=[]):
 
 
 
-def main(batch, topn):
+def main(win_percentage_dir, batch, topn):
     csv_tuples = [line.rstrip().replace('"', '').split(',') for line in sys.stdin]
     log_size = len(csv_tuples)
     if log_size < batch:
@@ -334,7 +334,7 @@ def main(batch, topn):
         draw_transition(batch, transition_dic, transition_size, input_keys)
 
 
-        with open("win_percentage_kifs_b{0:03d}.csv".format(batch), 'w') as f:
+        with open("{0}/win_percentage_kifs_b{1:03d}.csv".format(win_percentage_dir, batch), 'w') as f:
             f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
             f.write("\n")
 
@@ -343,6 +343,7 @@ def main(batch, topn):
 
 if __name__ == '__main__':
     args = docopt(__doc__)
+    win_percentage_dir = args["<win_percentage_dir>"]
     batch = int(args["<batch>"])
     topn = int(args["<topn>"])
-    main(batch, topn)
+    main(win_percentage_dir, batch, topn)

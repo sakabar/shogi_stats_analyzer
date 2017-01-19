@@ -4,7 +4,7 @@ kif/*.csa
 kif_sjis/*.kif
 kif_sjis/*.csa
 
-win_percentage*
+win_percentage_dir
 
 shogi_log.csv
 not_reviewd_kifs.csv
