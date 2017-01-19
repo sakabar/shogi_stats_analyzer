@@ -1,5 +1,8 @@
+#棋譜データ
 kif/*.kif
 kif/*.csa
+kif_sjis/*.kif
+kif_sjis/*.csa
 
 win_percentage*
 
