@@ -17,3 +17,6 @@ backup
 not_reviewed_kifs.csv
 
 error.txt
+
+#設定
+config/player_name.txt
