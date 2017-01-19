@@ -16,7 +16,7 @@ sym_kif_dir=kif_dir #シンボリックリンクかもしれない棋譜ディ�
 #バックアップ時にはreadlinkで実体を参照して保存する
 readlink $sym_kif_dir >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    kif_dir=$(readlink kif)
+    kif_dir=$(readlink $sym_kif_dir)
 else
     kif_dir=$sym_kif_dir
 fi
