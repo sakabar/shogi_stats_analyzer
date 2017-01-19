@@ -1,8 +1,5 @@
 #棋譜データ
-kif/*.kif
-kif/*.csa
-kif_sjis/*.kif
-kif_sjis/*.csa
+kif_dir
 
 win_percentage_dir
 
