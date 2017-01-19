@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 set -u
+set -e
 
 #バックアップファイルを復元する
 
@@ -16,11 +17,15 @@ tgz_file=$1
 #まずは、現状をバックアップ
 shell/backup_files.zsh
 
-rm -rf kif shogi_log.csv
+kif_dir=kif_dir
+log_file=shogi_log.csv
+rm -rf $kif_dir $log_file
 tar xf $tgz_file
-mv ${tgz_file:t:r:r}/kif .
-mv ${tgz_file:t:r:r}/shogi_log.csv .
-rm -rf ${tgz_file:t:r:r}
+
+backuped_dir=${tgz_file:t:r:r}
+mv $backuped_dir/$kif_dir  .
+mv $backuped_dir/$log_file .
+rm -rf $backuped_dir
 echo "backup of ${tgz_file} is restored."
 
 exit 0

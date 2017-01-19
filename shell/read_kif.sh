@@ -17,23 +17,24 @@ input_kif_file=$1
 tmp_file=`mktemp -t tmpfile_`
 cat $input_kif_file | nkf -w -Lu | grep -v "^$" > $tmp_file
 
+kif_dir=kif_dir/raw/utf8
 #開始日時：2016年11月16日(水) 12:25:10
-new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
-if [[ $new_file_name = "kif/.kif" ]]; then
-    new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日(.) [0-9]\+[:：][0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:：')".kif"
+new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
+    new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日(.) [0-9]\+[:：][0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:：')".kif"
 fi
-if [[ $new_file_name = "kif/.kif" ]]; then
-    new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日 [0-9]\+:[0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:')".kif"
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
+    new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日 [0-9]\+:[0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:')".kif"
 fi
-if [[ $new_file_name = "kif/.kif" ]]; then
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
     if [[ $(echo $input_kif_file:t:r | grep -c "^81Dojo") -ge 1 ]]; then
         # 81Dojo-2016-11-22-20-27.kif
-        new_file_name="kif/"$(echo $input_kif_file:t:r | sed -e 's/^81Dojo-//' | sed -e 's/-//' | sed -e 's/-//' | sed -e 's/-/_/' | sed -e 's/-//')".kif"
+        new_file_name=$kif_dir"/"$(echo $input_kif_file:t:r | sed -e 's/^81Dojo-//' | sed -e 's/-//' | sed -e 's/-//' | sed -e 's/-/_/' | sed -e 's/-//')".kif"
     fi
 fi
 
 
-if [[ $new_file_name = "kif/.kif" ]]; then
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
     echo "Time read error" >&2
     exit 1
 fi

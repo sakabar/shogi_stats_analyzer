@@ -11,21 +11,25 @@ fi
 backup_dir=backup/backup_$(date "+%Y%m%d_%H%M%S")
 mkdir -p $backup_dir
 
+sym_kif_dir=kif_dir #シンボリックリンクかもしれない棋譜ディレクトリ
 #Dropboxに実体を置き、リポジトリにはシンボリックリンクを置いておく
 #バックアップ時にはreadlinkで実体を参照して保存する
-readlink kif >/dev/null 2>&1
+readlink $sym_kif_dir >/dev/null 2>&1
 if [ $? -eq 0 ]; then
     kif_dir=$(readlink kif)
 else
-    kif_dir=kif
+    kif_dir=$sym_kif_dir
 fi
 
-readlink shogi_log.csv >/dev/null 2>&1
+sym_shogi_log_file=shogi_log.csv
+readlink $sym_shogi_log_file >/dev/null 2>&1
 if [ $? -eq 0 ]; then
-    log_file=$(readlink shogi_log.csv)
+    log_file=$(readlink $sym_shogi_log_file)
 else
-    log_file=shogi_log.csv
+    log_file=$sym_shogi_log_file
 fi
+
+set -e
 
 cp -a $kif_dir $log_file $backup_dir
 tar zcf ${backup_dir}.tar.gz -C $backup_dir:h $backup_dir:t

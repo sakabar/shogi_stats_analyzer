@@ -19,13 +19,15 @@ echo -n "clipboard:[">&2
 pbpaste | tee $clipboard_text >&2
 echo "]">&2
 
+kif_dir=kif_dir/raw/utf8
+
 kif_file=$(cat $clipboard_text | grep -o -m 1 "[0-9]\{8\}_[0-9]\{4\}")".kif"
 
 if [[ $kif_file = ".kif" ]]; then
     echo "Can't read kif_file name from:"$clipboard_text
 else
     echo $kif_file >&2
-    cat kif/$kif_file | pbcopy
+    cat $kif_dir/$kif_file | pbcopy
 fi
 
 rm -rf $clipboard_text
