@@ -18,6 +18,7 @@ tmp_file=`mktemp -t tmpfile_`
 cat $input_kif_file | nkf -w -Lu | grep -v "^$" > $tmp_file
 
 kif_dir=kif_dir/raw/utf8
+mkdir -p $kif_dir
 #開始日時：2016年11月16日(水) 12:25:10
 new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
 if [[ $new_file_name = $kif_dir"/.kif" ]]; then
