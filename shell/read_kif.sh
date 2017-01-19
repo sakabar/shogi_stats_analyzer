@@ -70,10 +70,18 @@ if [[ $field = "" ]]; then
     field="$(cat $new_file_name | grep "^場所" | awk -F'：' '{print $2}')"
 fi
 
+config_dir=config
+name_config=$config_dir/player_name.txt
+if [ ! -e $name_config ]; then
+    echo "${name_config}が存在しません。${config_dir}/player_name_sample.txtを適宜書き換え、${name_config}として保存してください。">&2
+    echo "Unexpected pattern. 3 ">&2
+    echo "\"${new_file_name:t}\",\"${field}\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\""
+    exit 1
+fi
 
-is_sente=$(cat $new_file_name | grep "^先手：" | grep -E -c "pymeoa|saka_bar|榊原|プレイヤー|あなた")
-is_gote=$(cat $new_file_name | grep "^後手：" | grep -E -c "pymeoa|saka_bar|榊原|プレイヤー|あなた")
-
+#もしかして、この方法だとplayer_nameに正規表現を埋め込まれてバグる? FIXME
+is_sente=$(cat $new_file_name | grep "^先手[:：]" | grep -c -f $name_config)
+is_gote=$(cat $new_file_name | grep "^後手[:：]" | grep -c -f $name_config)
 
 if [[ $is_sente -eq 1 ]]; then
     teban="先手"
@@ -138,10 +146,6 @@ else
     else
         win_lose="勝"
     fi
-# else
-#     echo "Unexpected pattern 2.">&2
-#     echo "\"${new_file_name:t}\",\"${field}\",\"\",\"\",\"\",\"\",\"\",\"${teban}\",\"\",\"\",\"\""
-#     exit 1
 fi
 
 battle_time=""
