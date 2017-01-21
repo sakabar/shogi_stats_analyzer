@@ -8,9 +8,11 @@ Options:
 """
 
 from collections import defaultdict
+import count_mate
 from docopt import docopt
 import matplotlib.pyplot as plt
 import sys
+import os.path #あまり使いたくない
 
 def read_batch_csv(batch_csv):
     win_num_dic  = {} #戦型 -> 勝数の辞書
@@ -105,7 +107,7 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
 
     # 右側の余白を調整
     plt.subplots_adjust(right=0.5, top=0.5)
-    plt.savefig("graph/b{0:03d}_importance.png".format(batch))
+    plt.savefig("result_dir/graph/b{0:03d}_importance.png".format(batch))
     plt.clf()
 
     return
@@ -131,7 +133,7 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
 
     # 右側の余白を調整
     plt.subplots_adjust(right=0.5, top=0.5)
-    plt.savefig("graph/b{0:03d}_tactics_win_p.png".format(batch))
+    plt.savefig("result_dir/graph/b{0:03d}_tactics_win_p.png".format(batch))
     plt.clf()
 
     return
@@ -184,7 +186,7 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
     # 右側の余白を調整
     # plt.subplots_adjust(right=0.5, top=0.5)
 
-    plt.savefig("graph/b{0:03d}_sengo_win_p.png".format(batch))
+    plt.savefig("result_dir/graph/b{0:03d}_sengo_win_p.png".format(batch))
     plt.clf()
 
     return
@@ -227,8 +229,57 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     # 右側の余白を調整
     # plt.subplots_adjust(right=0.5, top=0.5)
 
-    plt.savefig("graph/b{0:03d}_avg_rating.png".format(batch))
+    plt.savefig("result_dir/graph/b{0:03d}_avg_rating.png".format(batch))
     plt.clf()
+
+def draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list):
+    plt.clf()
+
+    x = list(range(batch, batch + transition_size))
+
+    cand = [1,3,5,7,9,11,13]
+    for n in cand:
+        y = []
+        y_d = [d_dic[n] for d_dic in discover_transition_list]
+        y_o = [o_dic[n] for o_dic in overlook_transition_list]
+
+        for d, o in zip(y_d, y_o):
+            if (d + o) == 0:
+                if len(y) == 0:
+                    y = [0.0]
+                else:
+                    y.append(y[-1]) #バッチ中に詰み手順がなかったら前のバッチの値を引き継ぐ
+            else:
+                r = 1.0 * d / (d + o)
+                y.append(r)
+
+        plt.plot(x, y, label="%d手詰" % n)
+
+    plt.title("即詰み発見率推移 (直近{0:d}局ごと)".format(batch))
+    plt.ylabel("即詰み発見率")
+    plt.xlabel("対局ID")
+
+    #点線の補助線を描画
+    plt.plot([batch, batch+transition_size-1], [1.0, 1.0], ':')
+
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    plt.ylim(0.0, 1.4)
+    plt.yticks([ y / 100.0 for y in range(10, 100+1, 10)])
+
+
+    #loc='lower right'で、右下に凡例を表示
+    plt.legend(prop={'size' : 7})
+
+    # 右側の余白を調整
+    # plt.subplots_adjust(right=0.5, top=0.5)
+
+    plt.savefig("result_dir/graph/b{0:03d}_mate.png".format(batch))
+    plt.clf()
+
+    return
 
 def draw_transition(batch, transition_dic, transition_size, input_keys):
     draw_importrance(batch, transition_dic, transition_size, input_keys)
@@ -265,11 +316,8 @@ def get_avg_rating_dict(batch_csv, ignore_app_list=[]):
 
     return avg_rating_dict, opponent_avg_rating_dict
 
-
-
-
-
 def main(win_percentage_dir, batch, topn):
+    apery_dir = 'kif_dir/analyzed/shogiGUI/apery/utf8'
     csv_tuples = [line.rstrip().replace('"', '').split(',') for line in sys.stdin]
     log_size = len(csv_tuples)
     if log_size < batch:
@@ -291,6 +339,32 @@ def main(win_percentage_dir, batch, topn):
     ignore_app_list = ["不明", "対面", "激指R", "将棋ウォーズp", "将棋ウォーズ(3切れ)", "将棋ウォーズ(10秒)"]
 
     app_set = set([tpl[1] for tpl in csv_tuples])
+
+    #ここから詰み関連
+    discover_dic_dic = {}
+    overlook_dic_dic = {}
+    for log_line in csv_tuples:
+        kif_name = log_line[0]
+        analyzed_kif_path = apery_dir + '/' + kif_name
+
+        if (not os.path.exists(analyzed_kif_path)):
+            discover_dic_dic[kif_name] = defaultdict(int)
+            overlook_dic_dic[kif_name] = defaultdict(int)
+            continue
+
+
+        tagged_kif_lines = count_mate.get_tagged_kif(analyzed_kif_path)
+        move_list = count_mate.get_move_list(tagged_kif_lines)
+        is_winner = (log_line[6] == "勝")
+        is_sente = (log_line[7] == "先手")
+        discover_dic = count_mate.get_discover_dic(is_winner, is_sente, move_list)
+        overlook_dic = count_mate.get_overlook_dic(is_sente, move_list)
+
+        discover_dic_dic[kif_name] = discover_dic
+        overlook_dic_dic[kif_name] = overlook_dic
+
+    discover_transition_list = [] #詰みの発見数と見逃し数のペアの推移
+    overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
 
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1
@@ -320,6 +394,20 @@ def main(win_percentage_dir, batch, topn):
             transition_dic[key].append(val)
 
 
+        #ここから詰み関連
+        batch_discover_dic = defaultdict(int)
+        batch_overlook_dic = defaultdict(int)
+        for log_line in batch_csv:
+            kif_name = log_line[0]
+            for k, v in discover_dic_dic[kif_name].items():
+                batch_discover_dic[k] += v
+
+            for k, v in overlook_dic_dic[kif_name].items():
+                batch_overlook_dic[k] += v
+
+        discover_transition_list.append(batch_discover_dic)
+        overlook_transition_list.append(batch_overlook_dic)
+
     end_kif_ind = log_size - 1
     start_kif_ind = end_kif_ind - batch + 1
     last_batch_csv = csv_tuples[start_kif_ind:end_kif_ind + 1]
@@ -329,6 +417,7 @@ def main(win_percentage_dir, batch, topn):
     if batch < log_size:
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
+        draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list)
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, opponent_avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)

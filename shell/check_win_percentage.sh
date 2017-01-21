@@ -7,8 +7,10 @@ if [ $# -ne 0 ]; then
     exit 1
 fi
 
-readonly win_percentage_dir=win_percentage_dir
+readonly win_percentage_dir=result_dir/win_percentage_dir
+mkdir -p result_dir/graph
 mkdir -p $win_percentage_dir
+
 log_file=shogi_log.csv
 csv_file_all=$win_percentage_dir/win_percentage_kifs_all.csv
 

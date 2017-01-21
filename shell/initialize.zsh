@@ -10,11 +10,14 @@ set -e
 
 utf8_kif_dir=kif_dir/raw/utf8
 sjis_kif_dir=kif_dir/raw/sjis
-apery_kif_dir=kif_dir/analyzed/shogiGUI/apery
+apery_utf8_kif_dir=kif_dir/analyzed/shogiGUI/apery/utf8
+apery_sjis_kif_dir=kif_dir/analyzed/shogiGUI/apery/sjis
 
 mkdir -p $utf8_kif_dir
 mkdir -p $sjis_kif_dir
-mkdir -p $apery_kif_dir
+mkdir -p $apery_utf8_kif_dir
+mkdir -p $apery_sjis_kif_dir
+mkdir -p result_dir
 
 config_file=config/player_name.txt
 if [ ! -e $config_file ]; then
