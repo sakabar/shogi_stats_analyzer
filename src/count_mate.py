@@ -159,28 +159,16 @@ def get_discover_dic(is_winner, is_sente, move_list):
         #勝者でない場合は、必ず詰みに失敗している
         return discover_dic
 
-    if is_sente:
-        if final_score >= checkmate_score - 100:
-            cnt = checkmate_score_to_hand_num(is_sente, final_score) - 1
-        else:
-            cnt = 0
+    if is_in_checkmate_procedure(is_sente, final_score):
+        cnt = checkmate_score_to_hand_num(is_sente, final_score) - 1
     else:
-        if final_score <= -(checkmate_score - 100):
-            cnt = checkmate_score_to_hand_num(is_sente, final_score) - 1
-        else:
-            cnt = 0
+        cnt = 0
 
     for ind, (v1, v_lst) in list(enumerate(move_list))[::-1]:
-        if is_sente:
-            if v1 >= checkmate_score - 100:
-                cnt += 1
-            else:
-                break
+        if is_in_checkmate_procedure(is_sente, v1):
+            cnt += 1
         else:
-            if v1 <= -(checkmate_score - 100):
-                cnt += 1
-            else:
-                break
+            break
 
     if cnt == 0:
         #評価値が詰み状態にならずに勝利 → 時間か勝勢による投了
@@ -192,41 +180,40 @@ def get_discover_dic(is_winner, is_sente, move_list):
 
     return discover_dic
 
+def get_moves(is_sente, move_list):
+    if is_sente:
+        return [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 1]
+    else:
+        return [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 0 and ind > 0]
+
+def is_in_checkmate_procedure(is_sente, score):
+    checkmate_score = 30000
+    if is_sente:
+        return score >= (checkmate_score - 100)
+    else:
+        return score <= -(checkmate_score - 100)
+
+def x_gt_y(is_sente, x, y):
+    if is_sente:
+        return x > y
+    else:
+        return x < y
+
+def x_lt_y(is_sente, x, y):
+    if is_sente:
+        return x < y
+    else:
+        return x > y
+
 def get_overlook_dic(is_sente, move_list):
     checkmate_score = 30000
     overlook_dic = defaultdict(int)
 
-    if is_sente:
-        sente_moves = [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 1]
-        lst = [v_lst[0] for v1, v_lst in sente_moves if v_lst[0] >= (checkmate_score - 100) and v1 < v_lst[0]]
+    moves = get_moves(is_sente, move_list)
+    lst = [v_lst[0] for v1, v_lst in moves if is_in_checkmate_procedure(is_sente, v_lst[0]) and x_lt_y(is_sente, v1, v_lst[0])]
 
-        for overlooked in lst:
-            hand_num = checkmate_score - overlooked + 1
-            overlook_dic[hand_num] += 1
-    else:
-        gote_moves = [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 0]
-        lst = [v_lst[0] for v1, v_lst in gote_moves if v_lst[0] <= -(checkmate_score - 100) and v1 > v_lst[0]]
-
-        for overlooked in lst:
-            hand_num = checkmate_score + overlooked + 1
-            overlook_dic[hand_num] += 1
+    for overlooked in lst:
+        hand_num = checkmate_score_to_hand_num(is_sente, overlooked)
+        overlook_dic[hand_num] += 1
 
     return overlook_dic
-
-# def main():
-#     # kif_name = "sample_apery2.kif"
-#     tagged_kif_lines = get_tagged_kif(kif_name)
-#     # for line in tagged_kif_lines:
-#     #     print(line)
-
-#     move_list = get_move_list(tagged_kif_lines)
-
-#     is_winner = False
-#     is_sente = True
-#     discover_dic = get_discover_dic(is_winner, is_sente, move_list)
-#     overlook_dic = get_overlook_dic(is_sente, move_list)
-
-#     return
-
-# if __name__ == '__main__':
-#     main()
