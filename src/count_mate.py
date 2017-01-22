@@ -128,22 +128,56 @@ def output_move_list(move_list):
     print("\n".join(output_arr))
     return
 
+#即詰みの評価値から、即詰みの手数を算出
+def checkmate_score_to_hand_num(is_sente, score):
+    checkmate_score = 30000
+    ans = 0
+    if is_sente:
+        ans = checkmate_score - score + 1
+    else:
+        ans = checkmate_score + score + 1
+    return ans
+
+def hand_num_to_checkmate_score(is_sente, n):
+    checkmate_score = 30000
+    ans = 0
+    if is_sente:
+        ans = checkmate_score - (n-1)
+    else:
+        ans = - (checkmate_score - (n-1))
+
+    return ans
+
+
 def get_discover_dic(is_winner, is_sente, move_list):
+    checkmate_score = 30000
     discover_dic = defaultdict(int)
+    final_score = move_list[-1][0] #終局時の評価値
     cnt = 0
 
     if (not is_winner):
-        #勝者でない場合は、必ず詰みが失敗している
+        #勝者でない場合は、必ず詰みに失敗している
         return discover_dic
+
+    if is_sente:
+        if final_score >= checkmate_score - 100:
+            cnt = checkmate_score_to_hand_num(is_sente, final_score) - 1
+        else:
+            cnt = 0
+    else:
+        if final_score <= -(checkmate_score - 100):
+            cnt = checkmate_score_to_hand_num(is_sente, final_score) - 1
+        else:
+            cnt = 0
 
     for ind, (v1, v_lst) in list(enumerate(move_list))[::-1]:
         if is_sente:
-            if v1 >= 30000 - 100:
+            if v1 >= checkmate_score - 100:
                 cnt += 1
             else:
                 break
         else:
-            if v1 <= -(30000 - 100):
+            if v1 <= -(checkmate_score - 100):
                 cnt += 1
             else:
                 break
@@ -159,47 +193,40 @@ def get_discover_dic(is_winner, is_sente, move_list):
     return discover_dic
 
 def get_overlook_dic(is_sente, move_list):
+    checkmate_score = 30000
     overlook_dic = defaultdict(int)
 
     if is_sente:
         sente_moves = [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 1]
-        lst = [v_lst[0] for v1, v_lst in sente_moves if v_lst[0] >= (30000 - 100) and v1 < v_lst[0]]
+        lst = [v_lst[0] for v1, v_lst in sente_moves if v_lst[0] >= (checkmate_score - 100) and v1 < v_lst[0]]
 
         for overlooked in lst:
-            hand_num = 30000 - overlooked + 1
+            hand_num = checkmate_score - overlooked + 1
             overlook_dic[hand_num] += 1
     else:
         gote_moves = [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 0]
-        lst = [v_lst[0] for v1, v_lst in gote_moves if v_lst[0] <= -(30000 - 100) and v1 > v_lst[0]]
+        lst = [v_lst[0] for v1, v_lst in gote_moves if v_lst[0] <= -(checkmate_score - 100) and v1 > v_lst[0]]
 
         for overlooked in lst:
-            hand_num = 30000 + overlooked + 1
+            hand_num = checkmate_score + overlooked + 1
             overlook_dic[hand_num] += 1
 
     return overlook_dic
 
+# def main():
+#     # kif_name = "sample_apery2.kif"
+#     tagged_kif_lines = get_tagged_kif(kif_name)
+#     # for line in tagged_kif_lines:
+#     #     print(line)
 
-# # 手数をキー、発見した回数を値とする辞書と、手数をキー、見逃した回数を値とする辞書のタプルを返す
-# def get_mate_dic(is_winner, is_sente, move_list):
+#     move_list = get_move_list(tagged_kif_lines)
+
+#     is_winner = False
+#     is_sente = True
 #     discover_dic = get_discover_dic(is_winner, is_sente, move_list)
-#     overlook_dic = defaultdict(is_sente, move_list)
-#     return (discover_dic, overlook_dic)
+#     overlook_dic = get_overlook_dic(is_sente, move_list)
 
+#     return
 
-def main():
-    # kif_name = "sample_apery2.kif"
-    tagged_kif_lines = get_tagged_kif(kif_name)
-    # for line in tagged_kif_lines:
-    #     print(line)
-
-    move_list = get_move_list(tagged_kif_lines)
-
-    is_winner = False
-    is_sente = True
-    discover_dic = get_discover_dic(is_winner, is_sente, move_list)
-    overlook_dic = get_overlook_dic(is_sente, move_list)
-
-    return
-
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()

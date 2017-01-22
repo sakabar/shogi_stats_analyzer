@@ -261,6 +261,7 @@ def draw_discover_overlook_mate(batch, transition_size, discover_transition_list
 
     #点線の補助線を描画
     plt.plot([batch, batch+transition_size-1], [1.0, 1.0], ':')
+    plt.plot([batch, batch+transition_size-1], [0.7, 0.7], ':')
 
 
     #X,Y軸の範囲
