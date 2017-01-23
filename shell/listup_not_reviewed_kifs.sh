@@ -9,8 +9,8 @@ output_file=not_reviewed_kifs.csv
 utf8_kif_dir=kif_dir/raw/utf8
 
 {
-    cat $log_file | awk -F, 'NF == 11 { print }'| grep -v "ぴよ将棋" | gawk -F, '$9 == "" || $9 == "\"\"" { print }'
-    cat $log_file | grep -i "TODO"
+    cat $log_file | grep -v '^#' | awk -F, 'NF == 11 { print }'| grep -v "ぴよ将棋" | gawk -F, '$9 == "" || $9 == "\"\"" { print }'
+    cat $log_file | grep -v '^#' | grep -i "TODO"
 } | sort -k1,1 | uniq > $output_file
 
 output_dir=~/Dropbox/shogi/ssa_share/todo_kifs
