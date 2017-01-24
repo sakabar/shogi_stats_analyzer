@@ -81,6 +81,17 @@ class TestMain(unittest.TestCase):
         actual = count_mate.get_overlook_dic(is_sente, move_list)
 
         self.assertEqual(actual, expected)
+
+    def test_get_opp_tsumero_overlook_dic0(self):
+        is_sente = False
+        move_list = [(0, [0]), (0, [0]), (29999, [0]), (10, [30000])]
+
+        expected = defaultdict(int)
+        expected[1] = 1
+        actual = count_mate.get_opponent_tsumero_overlook_dic(is_sente, move_list)
+
+        self.assertEqual(actual, expected)
+
 if __name__ == '__main__':
     unittest.main()
 
