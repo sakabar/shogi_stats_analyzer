@@ -92,6 +92,24 @@ class TestMain(unittest.TestCase):
 
         self.assertEqual(actual, expected)
 
+    def test_get_opp_tsumero_overlook_dic1(self):
+        is_sente = False
+        move_list = [(0, [0]), (29998, [29998]), (29999, [29999]), (10, [30000])]
+
+        expected = defaultdict(int)
+        actual = count_mate.get_opponent_tsumero_overlook_dic(is_sente, move_list)
+
+        self.assertEqual(actual, expected)
+
+    def test_get_opp_tsumero_overlook_dic2(self):
+        is_sente = False
+        move_list = [(0, [0]), (29993, [29993]), (29999, [29994]), (10, [30000])]
+
+        expected = defaultdict(int)
+        actual = count_mate.get_opponent_tsumero_overlook_dic(is_sente, move_list)
+
+        self.assertEqual(actual, expected)
+
 if __name__ == '__main__':
     unittest.main()
 

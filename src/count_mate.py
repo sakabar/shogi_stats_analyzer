@@ -229,7 +229,7 @@ def get_opponent_tsumero_overlook_dic(is_sente, move_list):
     opp_tsumero_overlook_dic = defaultdict(int)
 
     moves = get_moves(is_sente, move_list)
-    lst = [v1 for v1, v_lst in moves if is_in_checkmate_procedure((not is_sente), v1) and x_lt_y(is_sente, v1, v_lst[0])]
+    lst = [v1 for v1, v_lst in moves if is_in_checkmate_procedure((not is_sente), v1) and not(is_in_checkmate_procedure((not is_sente), v_lst[0])) and x_lt_y(is_sente, v1, v_lst[0])]
 
     for opp_tsumero in lst:
         hand_num = checkmate_score_to_hand_num((not is_sente), opp_tsumero) - 1
