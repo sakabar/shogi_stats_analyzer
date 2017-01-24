@@ -182,7 +182,7 @@ elif [[ $(echo $field | grep -o "^........." | head -n 1 ) = "レーティング
     battle_time=$(echo $field | grep -o "([^)]*)" | tr -d "()")
     field="24"
 elif [[ $(echo $field | grep -o "^......" | head -n 1 ) = "将棋クエスト" ]]; then
-    battle_time=$(echo $field | grep -o "([^)]*)" | tr -d "()")
+    battle_time="00:10+00"
     field="将棋クエスト"
 fi
 

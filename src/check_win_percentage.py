@@ -214,6 +214,11 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     plt.ylabel("レーティング")
     plt.xlabel("対局ID")
 
+    #点線の補助線を描画
+    for i in range(0, 400+1, 50):
+        plt.plot([batch, batch+transition_size-1], [i, i], ':')
+
+
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
     plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
