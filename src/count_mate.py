@@ -62,18 +62,30 @@ def get_move_list(tagged_kif_lines):
                         #そこで、読み筋に書かれている手の数を数えて、何手詰を読んでいるかを計算する必要がある。
                         think_hands_match = re.search(r'読み筋 (.*)$', line)
                         think_hands = think_hands_match.group(1).rstrip()
-                        mate_num = len(think_hands.split(' '))
+
+
+                        mate_num_think = len(think_hands.split(' '))
                         # mate_num = int(mate_match.group(2))
                         if mate_sign == '+':
-                            tmp_val = win_point - mate_num
+                            tmp_val = win_point - mate_num_think
                         elif mate_sign == '-':
-                            tmp_val = - (win_point - mate_num)
+                            tmp_val = - (win_point - mate_num_think)
                         else:
                             #パターンにマッチしたので、こうなることはない
                             raise Exception("Wrong line: [%s]" % line)
 
                     elif normal_match:
                         tmp_val = int(normal_match.group(1))
+
+                        #Aperyの解析結果に評価値35314があって驚愕した。(20170110_0058.kif)
+                        #勝勢だけど詰みではない場合は、評価値を25000に下げる
+                        #この処理だと、評価値の上下で悪手好手を判定しようとするときにバグの原因になるかも FIXME
+                        fixed_val = 25000
+                        if (tmp_val > win_point):
+                            tmp_val = fixed_val
+                        elif tmp_val < - win_point:
+                            tmp_val = - fixed_val
+
                     else:
                         raise Exception("Wrong line: [%s]" % line)
                 elif line.startswith('**候補手'):
@@ -81,29 +93,38 @@ def get_move_list(tagged_kif_lines):
                         mate_sign = mate_match.group(1)
                         think_hands_match = re.search(r'読み筋 (.*)$', line)
                         think_hands = think_hands_match.group(1).rstrip()
-                        mate_num = len(think_hands.split(' ')) - 1 #候補手のほうは、指す手そのものも読み筋に入っている。
+                        mate_num_think = len(think_hands.split(' ')) #候補手のほうは、指す手そのものも読み筋に入っている。
                         # mate_num = int(mate_match.group(2))
-                        if mate_sign == '+':
-                            p = win_point - mate_num
-                        elif mate_sign == '-':
-                            p = - (win_point - mate_num)
-                        else:
-                            #パターンにマッチしたので、こうなることはない
-                            raise Exception("Wrong line: [%s]" % line)
+
+                        #読み筋の手数が偶数だったら1を足す
+                        #なぜか、詰+9の表示が出ているのに読み筋は8手しか表示されないということがあった。最後の1手詰は省略されている?
+                        if (mate_num_think % 2) == 0:
+                            mate_num_think += 1
+
+                        _is_sente = mate_sign == '+'
+                        p = hand_num_to_checkmate_score(_is_sente, mate_num_think)
 
                         if len(tmp_cand_list) == 0:
                            tmp_cand_list.append(p)
-                        elif (move_ind % 2 == 1) and tmp_cand_list[-1] >= p:
+                        elif x_gt_y(_is_sente, tmp_cand_list[-1], p):
                             tmp_cand_list.append(p)
-                        elif (move_ind % 2 == 0) and tmp_cand_list[-1] <= p:
-                            tmp_cand_list.append(p)
+
                     elif normal_match:
+                        # #Aperyの解析結果に評価値35314があって驚愕した。(20170110_0058.kif)
+                        # #勝勢だけど詰みではない場合は、評価値を25000に下げる
+                        # #この処理だと、評価値の上下で悪手好手を判定しようとするときにバグの原因になるかも FIXME
                         p = int(normal_match.group(1))
+                        fixed_val = 25000
+                        _is_sente = (move_ind % 2 == 1)
+
+                        if (p > win_point):
+                            p = fixed_val
+                        elif p < - win_point:
+                            p = - fixed_val
+
                         if len(tmp_cand_list) == 0:
                            tmp_cand_list.append(p)
-                        elif (move_ind % 2 == 1) and tmp_cand_list[-1] >= p:
-                            tmp_cand_list.append(p)
-                        elif (move_ind % 2 == 0) and tmp_cand_list[-1] <= p:
+                        elif x_gt_y(_is_sente, tmp_cand_list[-1], p):
                             tmp_cand_list.append(p)
                     else:
                         raise Exception("Wrong line: [%s]" % line)
@@ -114,7 +135,7 @@ def get_move_list(tagged_kif_lines):
 
     return ans
 
-def output_move_list(move_list):
+def get_move_list_str(move_list):
     output_arr = []
 
     for ind, (v1, v_lst) in enumerate(move_list):
@@ -125,8 +146,7 @@ def output_move_list(move_list):
         else:
             output_arr.append("- %d %d %d" % (ind, v1, v_lst[0]))
 
-    print("\n".join(output_arr))
-    return
+    return output_arr
 
 #即詰みの評価値から、即詰みの手数を算出
 def checkmate_score_to_hand_num(is_sente, score):
@@ -214,6 +234,38 @@ def get_overlook_dic(is_sente, move_list):
 
     for overlooked in lst:
         hand_num = checkmate_score_to_hand_num(is_sente, overlooked)
-        overlook_dic[hand_num] += 1
+        #15手より多い手数の詰み筋は無視
+        #Apery自体そんなに正確に読んでいない場合があるし、少なくとも今は15手詰を読める能力は
+        #必要ない
+        if (hand_num <= 15):
+            overlook_dic[hand_num] += 1
 
     return overlook_dic
+
+#discover_dic_dicとoverlook_dic_dicの内容をファイルに保存
+def output_discover_overlook_dic_dic(discover_dic_dic, overlook_dic_dic):
+    key_set = set(list(discover_dic_dic.keys()) + list(overlook_dic_dic.keys()))
+    for _kif_file in key_set:
+        _dicover_dic = discover_dic_dic[_kif_file]
+        sorted_list = sorted(_dicover_dic.items(), key=lambda tpl:tpl[0])
+        discover_output_path = "result_dir/checkmate/discover/%s" % _kif_file
+        ans_str_lst = ["%d %d" % (k, v) for k, v in sorted_list]
+        with open(discover_output_path, 'w') as f:
+            if len(ans_str_lst) == 0:
+                f.write("")
+            else:
+                f.write("\n".join(ans_str_lst))
+                f.write("\n")
+
+        _overlook_dic = overlook_dic_dic[_kif_file]
+        sorted_list = sorted(_overlook_dic.items(), key=lambda tpl:tpl[0])
+        overlook_output_path = "result_dir/checkmate/overlook/%s" % _kif_file
+        ans_str_lst = ["%d %d" % (k, v) for k, v in sorted_list]
+        with open(overlook_output_path, 'w') as f:
+            if len(ans_str_lst) == 0:
+                f.write("")
+            else:
+                f.write("\n".join(ans_str_lst))
+                f.write("\n")
+
+    return
