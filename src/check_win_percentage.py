@@ -361,6 +361,7 @@ def main(win_percentage_dir, batch, topn):
 
         tagged_kif_lines = count_mate.get_tagged_kif(analyzed_kif_path)
         move_list = count_mate.get_move_list(tagged_kif_lines)
+
         is_winner = (log_line[6] == "勝")
         is_sente = (log_line[7] == "先手")
         discover_dic = count_mate.get_discover_dic(is_winner, is_sente, move_list)
@@ -371,6 +372,13 @@ def main(win_percentage_dir, batch, topn):
 
     discover_transition_list = [] #詰みの発見数と見逃し数のペアの推移
     overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
+
+    #バッチが100の時のみ、discover_dic_dicとoverlook_dic_dicの中身をファイルに出力
+    #バッチ数がいくらであっても出力結果が変わらないため、複数のバッチ数で出力するのは無駄
+    #しかも、並列実行するとするとお互いが書き換え合って困ったことになるかもしれない
+    if batch == 100:
+        count_mate.output_discover_overlook_dic_dic(discover_dic_dic, overlook_dic_dic)
+
 
     for start_kif_ind in range(0, log_size - batch + 1):
         end_kif_ind = start_kif_ind + batch - 1

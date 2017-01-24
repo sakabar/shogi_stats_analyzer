@@ -10,6 +10,8 @@ fi
 readonly win_percentage_dir=result_dir/win_percentage_dir
 mkdir -p result_dir/graph
 mkdir -p $win_percentage_dir
+mkdir -p result_dir/checkmate/discover
+mkdir -p result_dir/checkmate/overlook
 
 log_file=shogi_log.csv
 csv_file_all=$win_percentage_dir/win_percentage_kifs_all.csv
@@ -28,8 +30,8 @@ if [ ! -e $win_percentage_dir_abs/win_percentage.txt ]; then
     ln -s $win_percentage_dir_abs/win_percentage_b100.txt $win_percentage_dir_abs/win_percentage.txt
 fi
 
-#まだ反省していない棋譜をリストアップ
+# まだ反省していない棋譜をリストアップ
 shell/listup_not_reviewed_kifs.sh
 
-#現在のkifディレクトリのバックアップ
+# 現在のkifディレクトリのバックアップ
 shell/backup_files.zsh
