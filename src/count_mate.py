@@ -135,7 +135,7 @@ def get_move_list(tagged_kif_lines):
 
     return ans
 
-def get_move_list_str(move_list):
+def get_move_list_str_lst(move_list):
     output_arr = []
 
     for ind, (v1, v_lst) in enumerate(move_list):
@@ -225,8 +225,25 @@ def x_lt_y(is_sente, x, y):
     else:
         return x > y
 
+def get_opponent_tsumero_overlook_dic(is_sente, move_list):
+    opp_tsumero_overlook_dic = defaultdict(int)
+
+    moves = get_moves(is_sente, move_list)
+    lst = [v1 for v1, v_lst in moves if is_in_checkmate_procedure((not is_sente), v1) and not(is_in_checkmate_procedure((not is_sente), v_lst[0])) and x_lt_y(is_sente, v1, v_lst[0])]
+
+    for opp_tsumero in lst:
+        hand_num = checkmate_score_to_hand_num((not is_sente), opp_tsumero) - 1
+        #15手より多い手数の詰み筋は無視
+        #Apery自体そんなに正確に読んでいない場合があるし、少なくとも今は15手詰を読める能力は
+        #必要ない
+        if (hand_num <= 15):
+            opp_tsumero_overlook_dic[hand_num] += 1
+
+
+    return opp_tsumero_overlook_dic
+
+
 def get_overlook_dic(is_sente, move_list):
-    checkmate_score = 30000
     overlook_dic = defaultdict(int)
 
     moves = get_moves(is_sente, move_list)
@@ -241,6 +258,22 @@ def get_overlook_dic(is_sente, move_list):
             overlook_dic[hand_num] += 1
 
     return overlook_dic
+
+def output_tsumero_overlook_dic_dic(tsumero_dic_dic):
+    for _kif_file in tsumero_dic_dic.keys():
+        _dicover_dic = tsumero_dic_dic[_kif_file]
+        sorted_list = sorted(_dicover_dic.items(), key=lambda tpl:tpl[0])
+        tsumero_output_path = "result_dir/checkmate/tsumero/%s" % _kif_file
+        ans_str_lst = ["%d %d" % (k, v) for k, v in sorted_list]
+        with open(tsumero_output_path, 'w') as f:
+            if len(ans_str_lst) == 0:
+                f.write("")
+            else:
+                f.write("\n".join(ans_str_lst))
+                f.write("\n")
+
+    return
+
 
 #discover_dic_dicとoverlook_dic_dicの内容をファイルに保存
 def output_discover_overlook_dic_dic(discover_dic_dic, overlook_dic_dic):

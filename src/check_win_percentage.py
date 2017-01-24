@@ -237,12 +237,49 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     plt.savefig("result_dir/graph/b{0:03d}_avg_rating.png".format(batch))
     plt.clf()
 
+def draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list):
+    plt.clf()
+
+    x = list(range(batch, batch + transition_size))
+
+    cand = [1,3,5,7,9]
+    for n in cand:
+        y = [t_dic[n] for t_dic in opponent_tsumero_overlook_transition_list]
+        plt.plot(x, y, label="%d手詰" % n)
+
+    plt.title("詰めろ見逃し数推移 (直近{0:d}局ごと)".format(batch))
+    plt.ylabel("詰めろ見逃し数")
+    plt.xlabel("対局ID")
+
+    #点線の補助線を描画
+    # plt.plot([batch, batch+transition_size-1], [5, 5], ':')
+    # plt.plot([batch, batch+transition_size-1], [10, 10], ':')
+
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    # plt.ylim(0.0, 1.4)
+    # plt.yticks([ y / 100.0 for y in range(10, 100+1, 10)])
+
+
+    #loc='lower right'で、右下に凡例を表示
+    plt.legend(prop={'size' : 7})
+
+    # 右側の余白を調整
+    # plt.subplots_adjust(right=0.5, top=0.5)
+
+    plt.savefig("result_dir/graph/b{0:03d}_tsumero.png".format(batch))
+    plt.clf()
+
+    return
+
 def draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list):
     plt.clf()
 
     x = list(range(batch, batch + transition_size))
 
-    cand = [1,3,5,7,9,11,13]
+    cand = [1,3,5,7,9]
     for n in cand:
         y = []
         y_d = [d_dic[n] for d_dic in discover_transition_list]
@@ -349,6 +386,7 @@ def main(win_percentage_dir, batch, topn):
     #ここから詰み関連
     discover_dic_dic = {}
     overlook_dic_dic = {}
+    opponent_tsumero_overlook_dic_dic = {}
     for log_line in csv_tuples:
         kif_name = log_line[0]
         analyzed_kif_path = apery_dir + '/' + kif_name
@@ -356,28 +394,39 @@ def main(win_percentage_dir, batch, topn):
         if (not os.path.exists(analyzed_kif_path)):
             discover_dic_dic[kif_name] = defaultdict(int)
             overlook_dic_dic[kif_name] = defaultdict(int)
+            opponent_tsumero_overlook_dic_dic[kif_name] = defaultdict(int)
             continue
 
 
         tagged_kif_lines = count_mate.get_tagged_kif(analyzed_kif_path)
         move_list = count_mate.get_move_list(tagged_kif_lines)
-
         is_winner = (log_line[6] == "勝")
         is_sente = (log_line[7] == "先手")
+
+        with open('result_dir/move_list/%s' % kif_name, 'w') as move_f:
+            s = count_mate.get_move_list_str_lst(move_list)
+            move_f.write("\n".join(s))
+            move_f.write("\n")
+
+
         discover_dic = count_mate.get_discover_dic(is_winner, is_sente, move_list)
         overlook_dic = count_mate.get_overlook_dic(is_sente, move_list)
+        opponent_tsumero_overlook_dic = count_mate.get_opponent_tsumero_overlook_dic(is_sente, move_list)
 
         discover_dic_dic[kif_name] = discover_dic
         overlook_dic_dic[kif_name] = overlook_dic
+        opponent_tsumero_overlook_dic_dic[kif_name] = opponent_tsumero_overlook_dic
 
     discover_transition_list = [] #詰みの発見数と見逃し数のペアの推移
     overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
+    opponent_tsumero_overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
 
     #バッチが100の時のみ、discover_dic_dicとoverlook_dic_dicの中身をファイルに出力
     #バッチ数がいくらであっても出力結果が変わらないため、複数のバッチ数で出力するのは無駄
     #しかも、並列実行するとするとお互いが書き換え合って困ったことになるかもしれない
     if batch == 100:
         count_mate.output_discover_overlook_dic_dic(discover_dic_dic, overlook_dic_dic)
+        count_mate.output_tsumero_overlook_dic_dic(opponent_tsumero_overlook_dic_dic)
 
 
     for start_kif_ind in range(0, log_size - batch + 1):
@@ -411,6 +460,7 @@ def main(win_percentage_dir, batch, topn):
         #ここから詰み関連
         batch_discover_dic = defaultdict(int)
         batch_overlook_dic = defaultdict(int)
+        batch_opp_tsumero_overlook_dic = defaultdict(int)
         for log_line in batch_csv:
             kif_name = log_line[0]
             for k, v in discover_dic_dic[kif_name].items():
@@ -419,8 +469,12 @@ def main(win_percentage_dir, batch, topn):
             for k, v in overlook_dic_dic[kif_name].items():
                 batch_overlook_dic[k] += v
 
+            for k, v in opponent_tsumero_overlook_dic_dic[kif_name].items():
+                batch_opp_tsumero_overlook_dic[k] += v
+
         discover_transition_list.append(batch_discover_dic)
         overlook_transition_list.append(batch_overlook_dic)
+        opponent_tsumero_overlook_transition_list.append(batch_opp_tsumero_overlook_dic)
 
     end_kif_ind = log_size - 1
     start_kif_ind = end_kif_ind - batch + 1
@@ -432,6 +486,7 @@ def main(win_percentage_dir, batch, topn):
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
         draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list)
+        draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list)
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, opponent_avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)
