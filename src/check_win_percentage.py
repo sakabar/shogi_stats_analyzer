@@ -237,18 +237,19 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
     plt.savefig("result_dir/graph/b{0:03d}_avg_rating.png".format(batch))
     plt.clf()
 
-def draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list):
+#「手数(int)をキーとして回数を値とする辞書」のリストを与え、それをキーごとにグラフ化する
+def draw_opp_tsumero_overlook(batch, transition_size, hand_to_cnt_transition_list, suffix_name, ylabel_str="自玉への詰めろ見逃し数"):
     plt.clf()
 
     x = list(range(batch, batch + transition_size))
 
     cand = [1,3,5,7,9]
     for n in cand:
-        y = [t_dic[n] for t_dic in opponent_tsumero_overlook_transition_list]
+        y = [t_dic[n] for t_dic in hand_to_cnt_transition_list]
         plt.plot(x, y, label="%d手詰" % n)
 
-    plt.title("詰めろ見逃し数推移 (直近{0:d}局ごと)".format(batch))
-    plt.ylabel("詰めろ見逃し数")
+    plt.title("{1}の推移 (直近{0:d}局ごと)".format(batch, ylabel_str))
+    plt.ylabel(ylabel_str)
     plt.xlabel("対局ID")
 
     #点線の補助線を描画
@@ -259,6 +260,9 @@ def draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
     plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+
+    [xmin, xmax, ymin, ymax] = plt.axis() #今の境界を返す
+    plt.axis([xmin,xmax,ymin-1,ymax+1]) #新しい境界を設定
     # plt.ylim(0.0, 1.4)
     # plt.yticks([ y / 100.0 for y in range(10, 100+1, 10)])
 
@@ -269,7 +273,8 @@ def draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_
     # 右側の余白を調整
     # plt.subplots_adjust(right=0.5, top=0.5)
 
-    plt.savefig("result_dir/graph/b{0:03d}_tsumero.png".format(batch))
+    save_path = "result_dir/graph/b{0:03d}_{1}.png".format(batch, suffix_name)
+    plt.savefig(save_path)
     plt.clf()
 
     return
@@ -387,6 +392,9 @@ def main(win_percentage_dir, batch, topn):
     discover_dic_dic = {}
     overlook_dic_dic = {}
     opponent_tsumero_overlook_dic_dic = {}
+    opponent_tsumero_overlook_lose_dic_dic = {}
+    overlook_lose_dic_dic = {} #相手玉の詰みがあったのに見逃して負け
+
     for log_line in csv_tuples:
         kif_name = log_line[0]
         analyzed_kif_path = apery_dir + '/' + kif_name
@@ -395,6 +403,8 @@ def main(win_percentage_dir, batch, topn):
             discover_dic_dic[kif_name] = defaultdict(int)
             overlook_dic_dic[kif_name] = defaultdict(int)
             opponent_tsumero_overlook_dic_dic[kif_name] = defaultdict(int)
+            opponent_tsumero_overlook_lose_dic_dic[kif_name] = defaultdict(int)
+            overlook_lose_dic_dic[kif_name] = defaultdict(int)
             continue
 
 
@@ -417,9 +427,18 @@ def main(win_percentage_dir, batch, topn):
         overlook_dic_dic[kif_name] = overlook_dic
         opponent_tsumero_overlook_dic_dic[kif_name] = opponent_tsumero_overlook_dic
 
+        if is_winner:
+            overlook_lose_dic_dic[kif_name] = defaultdict(int)
+            opponent_tsumero_overlook_lose_dic_dic[kif_name] = defaultdict(int)
+        else:
+            overlook_lose_dic_dic[kif_name] = overlook_dic
+            opponent_tsumero_overlook_lose_dic_dic[kif_name] = opponent_tsumero_overlook_dic
+
     discover_transition_list = [] #詰みの発見数と見逃し数のペアの推移
     overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
-    opponent_tsumero_overlook_transition_list = [] #詰みの発見数と見逃し数のペアの推移
+    opponent_tsumero_overlook_transition_list = [] #詰めろを見逃した数
+    opponent_tsumero_overlook_lose_transition_list = [] #負けた対局のみで、詰めろを見逃した数を集計
+    overlook_lose_transition_list = [] #詰みを発見できなくて負け
 
     #バッチが100の時のみ、discover_dic_dicとoverlook_dic_dicの中身をファイルに出力
     #バッチ数がいくらであっても出力結果が変わらないため、複数のバッチ数で出力するのは無駄
@@ -461,6 +480,8 @@ def main(win_percentage_dir, batch, topn):
         batch_discover_dic = defaultdict(int)
         batch_overlook_dic = defaultdict(int)
         batch_opp_tsumero_overlook_dic = defaultdict(int)
+        batch_opp_tsumero_overlook_lose_dic = defaultdict(int)
+        batch_overlook_lose_dic = defaultdict(int)
         for log_line in batch_csv:
             kif_name = log_line[0]
             for k, v in discover_dic_dic[kif_name].items():
@@ -472,9 +493,18 @@ def main(win_percentage_dir, batch, topn):
             for k, v in opponent_tsumero_overlook_dic_dic[kif_name].items():
                 batch_opp_tsumero_overlook_dic[k] += v
 
+            for k, v in opponent_tsumero_overlook_lose_dic_dic[kif_name].items():
+                batch_opp_tsumero_overlook_lose_dic[k] += v
+
+            for k, v in overlook_lose_dic_dic[kif_name].items():
+                batch_overlook_lose_dic[k] += v
+
         discover_transition_list.append(batch_discover_dic)
         overlook_transition_list.append(batch_overlook_dic)
         opponent_tsumero_overlook_transition_list.append(batch_opp_tsumero_overlook_dic)
+        opponent_tsumero_overlook_lose_transition_list.append(batch_opp_tsumero_overlook_lose_dic)
+        overlook_lose_transition_list.append(batch_overlook_lose_dic)
+
 
     end_kif_ind = log_size - 1
     start_kif_ind = end_kif_ind - batch + 1
@@ -486,7 +516,10 @@ def main(win_percentage_dir, batch, topn):
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
         draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list)
-        draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list)
+        draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list, "tsumero_all")
+        draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_lose_transition_list, "tsumero_lose")
+        draw_opp_tsumero_overlook(batch, transition_size, overlook_lose_transition_list, "overlook_lose", "相手玉の即詰みを見逃して負けた数")
+
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, opponent_avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)
