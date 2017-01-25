@@ -35,5 +35,25 @@ fi
 # まだ反省していない棋譜をリストアップ
 shell/listup_not_reviewed_kifs.sh
 
-# 現在のkifディレクトリのバックアップ
-shell/backup_files.zsh
+
+#前のバックアップから8時間以上空いていたら新しくバックアップ
+#gdateコマンドがなかったら必ずバックアップ
+backup_dir=backup
+
+which gdate >/dev/null 2>&1
+if [ $? -eq 0 ]; then
+    newest_backup_time=$(ls -t $backup_dir | head -n1 | grep -o "[0-9]\{8\}_[0-9]\{4\}" | tr '_' ' ')
+    newest_backup_unix_time=$(gdate '+%s' -d $newest_backup_time)
+    now_unix_time=$(gdate '+%s')
+
+    time_diff=$[ $now_unix_time - $newest_backup_unix_time ]
+    threshold=$[60 * 60 * 8]
+    if [ $time_diff -ge $threshold ]; then
+        # 現在のkifディレクトリのバックアップ
+        shell/backup_files.zsh
+    else
+        echo "Only $[${time_diff} / 60 ] minutes past from the last backup. Backup is skipped.">&2
+    fi
+else
+    shell/backup_files.zsh
+fi
