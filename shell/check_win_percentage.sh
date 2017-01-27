@@ -22,8 +22,10 @@ cat $log_file | grep -v "^#" | gawk -F',' 'NF == 11 {print $0}' | gawk -F',' '$6
 
 log_size=$(cat $csv_file_all | wc -l)
 readonly py_cmd=/Users/sak/local/src/anaconda3/envs/py35con/bin/python3.5 #何故かanacondaでactivateしたコマンドが実行されないので直接指定
+# cat $csv_file_all | $py_cmd src/check_win_percentage.py $win_percentage_dir 25 5  | column -t > $win_percentage_dir/win_percentage_b025.txt &
 cat $csv_file_all | $py_cmd src/check_win_percentage.py $win_percentage_dir 50 5  | column -t > $win_percentage_dir/win_percentage_b050.txt &
 cat $csv_file_all | $py_cmd src/check_win_percentage.py $win_percentage_dir 100 5  | column -t > $win_percentage_dir/win_percentage_b100.txt &
+# cat $csv_file_all | $py_cmd src/check_win_percentage.py $win_percentage_dir 200 5  | column -t > $win_percentage_dir/win_percentage_b200.txt &
 cat $csv_file_all | $py_cmd src/check_win_percentage.py $win_percentage_dir $log_size 5  | column -t > $win_percentage_dir/win_percentage_all.txt &
 wait
 
