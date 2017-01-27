@@ -17,15 +17,16 @@ tgz_file=$1
 #まずは、現状をバックアップ
 shell/backup_files.zsh
 
+#復元
+#shogi_log.csvやkif_dirがシンボリックリンクだった場合でも、
+#その場所に実体が復元されてしまうという問題がある。
+#復元できたあとにアレコレするのは、複元がそもそもできないよりはマシか。
+
 kif_dir=kif_dir
 log_file=shogi_log.csv
 rm -rf $kif_dir $log_file
 tar xf $tgz_file
 
-backuped_dir=${tgz_file:t:r:r}
-mv $backuped_dir/$kif_dir  .
-mv $backuped_dir/$log_file .
-rm -rf $backuped_dir
 echo "backup of ${tgz_file} is restored."
 
 exit 0

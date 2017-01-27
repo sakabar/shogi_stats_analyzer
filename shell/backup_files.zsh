@@ -1,6 +1,7 @@
 #!/bin/zsh
 
 set -u
+set -e
 
 if [ $# -ne 0 ]; then
     "$0 : Argument Error">&2
@@ -9,29 +10,17 @@ fi
 
 #kifディレクトリとshogi_log.csvをバックアップする
 backup_dir=backup/backup_$(date "+%Y%m%d_%H%M%S")
-mkdir -p $backup_dir
+# mkdir -p $backup_dir
 
-sym_kif_dir=kif_dir #シンボリックリンクかもしれない棋譜ディレクトリ
-#Dropboxに実体を置き、リポジトリにはシンボリックリンクを置いておく
-#バックアップ時にはreadlinkで実体を参照して保存する
-readlink $sym_kif_dir >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-    kif_dir=$(readlink $sym_kif_dir)
-else
-    kif_dir=$sym_kif_dir
-fi
+#以前まではシンボリックリンクの実体をわざわざ辿っていたが、
+#tar -hオプションの存在を知って解決
 
-sym_shogi_log_file=shogi_log.csv
-readlink $sym_shogi_log_file >/dev/null 2>&1
-if [ $? -eq 0 ]; then
-    log_file=$(readlink $sym_shogi_log_file)
-else
-    log_file=$sym_shogi_log_file
-fi
+#cp -a でファイルの情報を保って保存したかったが、それだとシンボリックリンクそのものが
+#コピーされてしまうので断念。解凍時に工夫することにした
 
-set -e
+kif_dir=kif_dir
+shogi_log_file=shogi_log.csv
+# cp -a $kif_dir $log_file $backup_dir
+tar zcfh ${backup_dir}.tar.gz $shogi_log_file $kif_dir
 
-cp -a $kif_dir $log_file $backup_dir
-tar zcf ${backup_dir}.tar.gz -C $backup_dir:h $backup_dir:t
-
-rm -rf $backup_dir
+# rm -rf $backup_dir
