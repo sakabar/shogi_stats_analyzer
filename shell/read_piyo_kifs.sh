@@ -10,6 +10,9 @@ set -u
 trash_dir=cache/trash$(date "+%y%m%d_%H%M")
 mkdir -p $trash_dir
 
+#Dropbox内のぴよ将棋棋譜ファイルを移動
+shell/mv_piyo_kifs.sh
+
 #81Dojoの棋譜のファイル名から対局開始時間を読み取って、棋譜ファイル内に記入
 # 81Dojo-2016-12-31-14-10.kif
 # "開始日時：2016/12/31"の行 -> "開始日時：2016/12/31 14:10:00"に書き換え
@@ -27,6 +30,7 @@ fi
 
 ls -U | grep -e "^81Dojo-.*\.kif$" -e "^piyo_.*.kif$" | while read f; do
     shell/read_kif.sh $f
+    cat $f | pbcopy #棋譜をクリップボードにコピー
 
     #正しく読み込めた棋譜のみ移動
     if [ $? -eq 0 ]; then
