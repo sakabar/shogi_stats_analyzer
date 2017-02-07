@@ -15,25 +15,27 @@ fi
 input_kif_file=$1
 
 tmp_file=`mktemp -t tmpfile_`
-cat $input_kif_file | nkf -w | nkf -Lu | grep -v "^$" > $tmp_file
+cat $input_kif_file | nkf -w -Lu | grep -v "^$" > $tmp_file
 
+kif_dir=kif_dir/raw/utf8
+mkdir -p $kif_dir
 #開始日時：2016年11月16日(水) 12:25:10
-new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
-if [[ $new_file_name = "kif/.kif" ]]; then
-    new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日(.) [0-9]\+[:：][0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:：')".kif"
+new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+/[0-9]\+/[0-9]\+ [0-9]\+[:：][0-9]\+" | tr ' ' '_' | tr -d '/:：')".kif"
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
+    new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日(.) [0-9]\+[:：][0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:：')".kif"
 fi
-if [[ $new_file_name = "kif/.kif" ]]; then
-    new_file_name="kif/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日 [0-9]\+:[0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:')".kif"
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
+    new_file_name=$kif_dir"/"$(cat $tmp_file | grep "^開始日時" | head -n 1 | grep -o "[0-9]\+年[0-9]\+月[0-9]\+日 [0-9]\+:[0-9]\+" | gsed -e 's/([^)]*)//g' | tr ' ' '_' | tr '年' '/' | tr '月' '/' | tr -d '日' | tr -d '/:')".kif"
 fi
-if [[ $new_file_name = "kif/.kif" ]]; then
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
     if [[ $(echo $input_kif_file:t:r | grep -c "^81Dojo") -ge 1 ]]; then
         # 81Dojo-2016-11-22-20-27.kif
-        new_file_name="kif/"$(echo $input_kif_file:t:r | sed -e 's/^81Dojo-//' | sed -e 's/-//' | sed -e 's/-//' | sed -e 's/-/_/' | sed -e 's/-//')".kif"
+        new_file_name=$kif_dir"/"$(echo $input_kif_file:t:r | sed -e 's/^81Dojo-//' | sed -e 's/-//' | sed -e 's/-//' | sed -e 's/-/_/' | sed -e 's/-//')".kif"
     fi
 fi
 
 
-if [[ $new_file_name = "kif/.kif" ]]; then
+if [[ $new_file_name = $kif_dir"/.kif" ]]; then
     echo "Time read error" >&2
     exit 1
 fi
@@ -68,10 +70,18 @@ if [[ $field = "" ]]; then
     field="$(cat $new_file_name | grep "^場所" | awk -F'：' '{print $2}')"
 fi
 
+config_dir=config
+name_config=$config_dir/player_name.txt
+if [ ! -e $name_config ]; then
+    echo "${name_config}が存在しません。${config_dir}/player_name_sample.txtを適宜書き換え、${name_config}として保存してください。">&2
+    echo "Unexpected pattern. 3 ">&2
+    echo "\"${new_file_name:t}\",\"${field}\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\",\"\""
+    exit 1
+fi
 
-is_sente=$(cat $new_file_name | grep "^先手：" | grep -E -c "pymeoa|saka_bar|榊原|プレイヤー|あなた")
-is_gote=$(cat $new_file_name | grep "^後手：" | grep -E -c "pymeoa|saka_bar|榊原|プレイヤー|あなた")
-
+#もしかして、この方法だとplayer_nameに正規表現を埋め込まれてバグる? FIXME
+is_sente=$(cat $new_file_name | grep "^先手[:：]" | grep -c -f $name_config)
+is_gote=$(cat $new_file_name | grep "^後手[:：]" | grep -c -f $name_config)
 
 if [[ $is_sente -eq 1 ]]; then
     teban="先手"
@@ -136,17 +146,13 @@ else
     else
         win_lose="勝"
     fi
-# else
-#     echo "Unexpected pattern 2.">&2
-#     echo "\"${new_file_name:t}\",\"${field}\",\"\",\"\",\"\",\"\",\"\",\"${teban}\",\"\",\"\",\"\""
-#     exit 1
 fi
 
 battle_time=""
 aite_level=""
 if [[ $field = "将棋ウォーズ(10分)" ]];then
     field="将棋ウォーズ"
-    battle_time="10-0"
+    battle_time="00:10+00"
     if [[ $teban = "先手" ]]; then
         aite_dankyu=$(cat $new_file_name | grep "^後手" | head -n1 | grep -E -o "[0-9]+級|初段|二段|三段|四段")
     else
@@ -176,7 +182,7 @@ elif [[ $(echo $field | grep -o "^........." | head -n 1 ) = "レーティング
     battle_time=$(echo $field | grep -o "([^)]*)" | tr -d "()")
     field="24"
 elif [[ $(echo $field | grep -o "^......" | head -n 1 ) = "将棋クエスト" ]]; then
-    battle_time=$(echo $field | grep -o "([^)]*)" | tr -d "()")
+    battle_time="00:10+00"
     field="将棋クエスト"
 fi
 

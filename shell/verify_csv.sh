@@ -3,12 +3,13 @@
 set -u
 
 result_str_file=$(mktemp -t hoge)
+kif_dir=kif_dir/raw/utf8
 cat shogi_log.csv | grep -v "^\"1棋譜ファイル名" | while read line; do
     kif_file=$(echo $line | awk -F, '{print $1}' | tr -d '"')
     if [[ $kif_file:e != "kif" ]]; then
         continue
     fi
-    ./shell/read_kif.sh kif/$kif_file > $result_str_file 2>/dev/null
+    ./shell/read_kif.sh $kif_dir/$kif_file > $result_str_file 2>/dev/null
 
     finish=$(cat $result_str_file | awk -F, '{print $6}')
     win_lose=$(cat $result_str_file | awk -F, '{print $7}')

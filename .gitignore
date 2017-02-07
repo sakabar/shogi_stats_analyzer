@@ -1,11 +1,24 @@
-kif/*.kif
-kif/*.csa
+#棋譜データ
+kif_dir
 
-win_percentage_dir_*
+#ファイルを出力するディレクトリ
+result_dir
 
 shogi_log.csv
 not_reviewd_kifs.csv
-graph/*.png
 
-trash
+#不要なデータを置く(後で復活できるように、削除はしない)
 cache
+
+#バックアップフォルダ
+backup
+
+#まだ反省していない棋譜
+not_reviewed_kifs.csv
+
+error.txt
+
+#設定
+config/player_name.txt
+
+__pycache__
