@@ -409,19 +409,19 @@ def main(win_percentage_dir, batch, topn):
 
 
         tagged_kif_lines = count_mate.get_tagged_kif(analyzed_kif_path)
-        move_list = count_mate.get_move_list(tagged_kif_lines)
+        score_list = count_mate.get_score_list(tagged_kif_lines)
         is_winner = (log_line[6] == "勝")
         is_sente = (log_line[7] == "先手")
 
-        with open('result_dir/move_list/%s' % kif_name, 'w') as move_f:
-            s = count_mate.get_move_list_str_lst(move_list)
+        with open('result_dir/score_list/%s' % kif_name, 'w') as move_f:
+            s = count_mate.get_score_list_str_lst(score_list)
             move_f.write("\n".join(s))
             move_f.write("\n")
 
 
-        discover_dic = count_mate.get_discover_dic(is_winner, is_sente, move_list)
-        overlook_dic = count_mate.get_overlook_dic(is_sente, move_list)
-        opponent_tsumero_overlook_dic = count_mate.get_opponent_tsumero_overlook_dic(is_sente, move_list)
+        discover_dic = count_mate.get_discover_dic(is_winner, is_sente, score_list)
+        overlook_dic = count_mate.get_overlook_dic(is_sente, score_list)
+        opponent_tsumero_overlook_dic = count_mate.get_opponent_tsumero_overlook_dic(is_sente, score_list)
 
         discover_dic_dic[kif_name] = discover_dic
         overlook_dic_dic[kif_name] = overlook_dic

@@ -13,7 +13,7 @@ mkdir -p $win_percentage_dir
 mkdir -p result_dir/checkmate/discover
 mkdir -p result_dir/checkmate/overlook
 mkdir -p result_dir/checkmate/tsumero
-mkdir -p result_dir/move_list
+mkdir -p result_dir/score_list
 
 log_file=shogi_log.csv
 csv_file_all=$win_percentage_dir/win_percentage_kifs_all.csv

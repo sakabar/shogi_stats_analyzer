@@ -21,7 +21,7 @@ def get_tagged_kif(kif_path):
     return tagged_kif_lines
 
 
-def get_move_list(tagged_kif_lines):
+def get_score_list(tagged_kif_lines):
     ans = []
 
     is_initialization = False #初期状態を表すmoveか
@@ -135,10 +135,10 @@ def get_move_list(tagged_kif_lines):
 
     return ans
 
-def get_move_list_str_lst(move_list):
+def get_score_list_str_lst(score_list):
     output_arr = []
 
-    for ind, (v1, v_lst) in enumerate(move_list):
+    for ind, (v1, v_lst) in enumerate(score_list):
         if ind == 0:
             output_arr.append("S 0 %d %d" % (v1, v_lst[0]))
         elif ind % 2 == 1:
@@ -169,10 +169,10 @@ def hand_num_to_checkmate_score(is_sente, n):
     return ans
 
 
-def get_discover_dic(is_winner, is_sente, move_list):
+def get_discover_dic(is_winner, is_sente, score_list):
     checkmate_score = 30000
     discover_dic = defaultdict(int)
-    final_score = move_list[-1][0] #終局時の評価値
+    final_score = score_list[-1][0] #終局時の評価値
     cnt = 0
 
     if (not is_winner):
@@ -184,7 +184,7 @@ def get_discover_dic(is_winner, is_sente, move_list):
     else:
         cnt = 0
 
-    for ind, (v1, v_lst) in list(enumerate(move_list))[::-1]:
+    for ind, (v1, v_lst) in list(enumerate(score_list))[::-1]:
         if is_in_checkmate_procedure(is_sente, v1):
             cnt += 1
         else:
@@ -200,11 +200,11 @@ def get_discover_dic(is_winner, is_sente, move_list):
 
     return discover_dic
 
-def get_moves(is_sente, move_list):
+def get_moves(is_sente, score_list):
     if is_sente:
-        return [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 1]
+        return [move_tpl for ind, move_tpl in enumerate(score_list) if ind % 2  == 1]
     else:
-        return [move_tpl for ind, move_tpl in enumerate(move_list) if ind % 2  == 0 and ind > 0]
+        return [move_tpl for ind, move_tpl in enumerate(score_list) if ind % 2  == 0 and ind > 0]
 
 def is_in_checkmate_procedure(is_sente, score):
     checkmate_score = 30000
@@ -225,10 +225,10 @@ def x_lt_y(is_sente, x, y):
     else:
         return x > y
 
-def get_opponent_tsumero_overlook_dic(is_sente, move_list):
+def get_opponent_tsumero_overlook_dic(is_sente, score_list):
     opp_tsumero_overlook_dic = defaultdict(int)
 
-    moves = get_moves(is_sente, move_list)
+    moves = get_moves(is_sente, score_list)
     lst = [v1 for v1, v_lst in moves if is_in_checkmate_procedure((not is_sente), v1) and not(is_in_checkmate_procedure((not is_sente), v_lst[0])) and x_lt_y(is_sente, v1, v_lst[0])]
 
     for opp_tsumero in lst:
@@ -243,10 +243,10 @@ def get_opponent_tsumero_overlook_dic(is_sente, move_list):
     return opp_tsumero_overlook_dic
 
 
-def get_overlook_dic(is_sente, move_list):
+def get_overlook_dic(is_sente, score_list):
     overlook_dic = defaultdict(int)
 
-    moves = get_moves(is_sente, move_list)
+    moves = get_moves(is_sente, score_list)
     lst = [v_lst[0] for v1, v_lst in moves if is_in_checkmate_procedure(is_sente, v_lst[0]) and x_lt_y(is_sente, v1, v_lst[0])]
 
     for overlooked in lst:
