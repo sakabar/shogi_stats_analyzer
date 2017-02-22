@@ -18,6 +18,9 @@ not_reviewed_kifs.csv
 
 error.txt
 
+#感想戦等メモ
+post_mortem/*.kif
+
 #設定
 config/player_name.txt
 
