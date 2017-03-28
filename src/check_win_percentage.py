@@ -384,7 +384,7 @@ def main(win_percentage_dir, batch, topn):
     opponent_avg_rating_transition_list = [] #レーティングの推移を記録するためのリスト
 
     #レーティング推移を記録しないアプリ一覧
-    ignore_app_list = ["不明", "対面", "激指R", "将棋ウォーズp", "将棋ウォーズ(3切れ)", "将棋ウォーズ(10秒)"]
+    ignore_app_list = ["不明", "対面", "激指R", "将棋ウォーズp", "将棋ウォーズ(3切れ)", "将棋ウォーズ(10秒)", "将棋クエスト(2分)"]
 
     app_set = set([tpl[1] for tpl in csv_tuples])
 
