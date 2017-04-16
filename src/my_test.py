@@ -1,6 +1,8 @@
+import check_win_percentage
 import count_mate
 from collections import defaultdict
 import unittest
+
 
 
 class TestMain(unittest.TestCase):
@@ -109,6 +111,36 @@ class TestMain(unittest.TestCase):
         actual = count_mate.get_opponent_tsumero_overlook_dic(is_sente, score_list)
 
         self.assertEqual(actual, expected)
+
+    def test_get_kiremake_rate0(self):
+        csv_tuples = []
+        t = ("kif_name", "site", "00:10+00")
+        csv_tuples.append(t)
+        t = ("kif_name", "site", "00:15+60")
+        csv_tuples.append(t)
+
+        expected = 0.5
+        actual = check_win_percentage.get_kiremake_rate(csv_tuples)
+
+        self.assertEqual(actual, expected)
+
+    def test_get_kiremake_rate1(self):
+        csv_tuples = []
+        t = ("kif_name", "site", "00:10+00")
+        csv_tuples.append(t)
+        t = ("kif_name", "site", "00:15+60")
+        csv_tuples.append(t)
+        t = ("kif_name", "site", "00:15+60")
+        csv_tuples.append(t)
+        t = ("kif_name", "site", "早指")
+        csv_tuples.append(t)
+
+
+        expected = 1.0 / 4
+        actual = check_win_percentage.get_kiremake_rate(csv_tuples)
+
+        self.assertEqual(actual, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
