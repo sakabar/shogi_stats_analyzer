@@ -11,6 +11,7 @@ from collections import defaultdict
 import count_mate
 from docopt import docopt
 import matplotlib.pyplot as plt
+import re
 import sys
 import os.path #あまり使いたくない
 
@@ -335,6 +336,39 @@ def draw_transition(batch, transition_dic, transition_size, input_keys):
 
     return
 
+#切れ負けルールの対局の割合をグラフ化
+def draw_byouyomi_rate(batch, kiremake_rate_transition_list, transition_size):
+    plt.clf()
+
+    plt.title("秒読みルール割合推移 (直近{0:d}局ごと)".format(batch))
+    plt.ylabel("割合")
+    plt.xlabel("対局ID")
+
+    #X,Y軸の範囲
+    plt.xlim(batch, batch + transition_size - 1)
+    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+
+    plt.ylim(0.0, 1.0)
+    plt.yticks([ i/10.0 for i in range(0, 11)])
+
+    x = list(range(batch, batch + transition_size))
+    y = [ 1.0 - r for r in kiremake_rate_transition_list ]
+    plt.plot(x, y)
+
+    plt.plot([batch, batch+transition_size-1], [0.5, 0.5], ':')
+
+
+    # #loc='lower right'で、右下に凡例を表示
+    # plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
+
+    # 右側の余白を調整
+    # plt.subplots_adjust(right=0.5, top=0.5)
+    plt.savefig("result_dir/graph/b{0:03d}_byouyomi_rule.png".format(batch))
+    plt.clf()
+
+    return
+
+
 #n棋譜ぶんのCSV情報を引数として、その棋譜内での各アプリでの平均レーティングを求める
 def get_avg_rating_dict(batch_csv, ignore_app_list=[]):
     avg_rating_dict = defaultdict(float) #アプリ名をキー、平均レーティングを値とする辞書
@@ -363,6 +397,15 @@ def get_avg_rating_dict(batch_csv, ignore_app_list=[]):
         opponent_avg_rating_dict[app] = opponent_app_sum_dict[app] / app_cnt_dict[app]
 
     return avg_rating_dict, opponent_avg_rating_dict
+
+def get_kiremake_rate(csv_tuples):
+    size = len(csv_tuples)
+
+    kiremake_pattern = re.compile(r'[0-9][0-9]:[0-9][0-9]\+00')
+    lst = [ tpl[2] for tpl in csv_tuples if kiremake_pattern.search(tpl[2]) ]
+
+    return 1.0 * len(lst) / size
+
 
 def main(win_percentage_dir, batch, topn):
     apery_dir = 'kif_dir/analyzed/shogiGUI/apery/utf8'
@@ -439,6 +482,8 @@ def main(win_percentage_dir, batch, topn):
     opponent_tsumero_overlook_transition_list = [] #詰めろを見逃した数
     opponent_tsumero_overlook_lose_transition_list = [] #負けた対局のみで、詰めろを見逃した数を集計
     overlook_lose_transition_list = [] #詰みを発見できなくて負け
+    kiremake_rate_transition_list = [] #切れ負けルールの対局数
+
 
     #バッチが100の時のみ、discover_dic_dicとoverlook_dic_dicの中身をファイルに出力
     #バッチ数がいくらであっても出力結果が変わらないため、複数のバッチ数で出力するのは無駄
@@ -467,6 +512,8 @@ def main(win_percentage_dir, batch, topn):
         all_win_p_transition_list.append(all_win_p_in_batch)
         sente_win_p_transition_list.append(sente_win_p_in_batch)
         gote_win_p_transition_list.append(gote_win_p_in_batch)
+
+        kiremake_rate_transition_list.append(get_kiremake_rate(batch_csv))
 
         avg_rating_dict, opponent_avg_rating_dict = get_avg_rating_dict(batch_csv, ignore_app_list)
         avg_rating_transition_list.append(avg_rating_dict)
@@ -515,6 +562,8 @@ def main(win_percentage_dir, batch, topn):
     if batch < log_size:
         input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
+        draw_byouyomi_rate(batch, kiremake_rate_transition_list, transition_size)
+
         draw_discover_overlook_mate(batch, transition_size, discover_transition_list, overlook_transition_list)
         draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_transition_list, "tsumero_all")
         draw_opp_tsumero_overlook(batch, transition_size, opponent_tsumero_overlook_lose_transition_list, "tsumero_lose")
