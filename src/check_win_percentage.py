@@ -11,6 +11,7 @@ from collections import defaultdict
 import count_mate
 from docopt import docopt
 import matplotlib.pyplot as plt
+import math
 import re
 import sys
 import os.path #あまり使いたくない
@@ -101,7 +102,10 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    # plt.xticks(list(range(batch, batch + transition_size, step)) + [batch + transition_size - 1])
+    #400局前、300局前、200局前、100局前、今
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -127,7 +131,9 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
     #loc='lower right'で、右下に凡例を表示
     plt.legend(prop={'size' : 10}, bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -175,7 +181,9 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     # plt.ylim(0.3, 0.6)
     plt.ylim(0.2, 1.0)
     plt.yticks([ y / 100.0 for y in range(20, 100, 5)])
@@ -222,7 +230,10 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     x_max = 450
     plt.ylim(50, x_max)
     plt.yticks(list(range(0, x_max + 1, 50)))
@@ -260,7 +271,9 @@ def draw_opp_tsumero_overlook(batch, transition_size, hand_to_cnt_transition_lis
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
     [xmin, xmax, ymin, ymax] = plt.axis() #今の境界を返す
     plt.axis([xmin,xmax,ymin-1,ymax+1]) #新しい境界を設定
@@ -314,7 +327,9 @@ def draw_discover_overlook_mate(batch, transition_size, discover_transition_list
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     plt.ylim(0.0, 1.4)
     plt.yticks([ y / 100.0 for y in range(10, 100+1, 10)])
 
@@ -346,7 +361,9 @@ def draw_byouyomi_rate(batch, kiremake_rate_transition_list, transition_size):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
+    step = 100
+    plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
+    # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
     plt.ylim(0.0, 1.0)
     plt.yticks([ i/10.0 for i in range(0, 11)])
