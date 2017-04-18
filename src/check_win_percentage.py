@@ -102,7 +102,7 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     # plt.xticks(list(range(batch, batch + transition_size, step)) + [batch + transition_size - 1])
     #400局前、300局前、200局前、100局前、今
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
@@ -131,7 +131,7 @@ def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
@@ -181,7 +181,7 @@ def draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_wi
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     # plt.ylim(0.3, 0.6)
@@ -230,7 +230,7 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
 
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
@@ -271,7 +271,7 @@ def draw_opp_tsumero_overlook(batch, transition_size, hand_to_cnt_transition_lis
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
@@ -327,7 +327,7 @@ def draw_discover_overlook_mate(batch, transition_size, discover_transition_list
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
     plt.ylim(0.0, 1.4)
@@ -361,7 +361,7 @@ def draw_byouyomi_rate(batch, kiremake_rate_transition_list, transition_size):
 
     #X,Y軸の範囲
     plt.xlim(batch, batch + transition_size - 1)
-    step = 100
+    step = batch
     plt.xticks(list(range(batch + transition_size - 1, batch + transition_size - 1 - step * 4 - 1, -step)))
     # plt.xticks(list(range(batch, batch + transition_size, 20)) + [batch + transition_size - 1])
 
