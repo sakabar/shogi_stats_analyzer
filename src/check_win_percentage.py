@@ -241,7 +241,7 @@ def draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_trans
 
     #loc='lower right'で、右下に凡例を表示
     # 凡例は表示しない。対局相手の平均レートを表示するときにはアンコメントしたほうがいいかもしれない。
-    plt.legend(prop={'size' : 10})
+    plt.legend(loc='upper left', prop={'size' : 10})
 
     # 右側の余白を調整
     # plt.subplots_adjust(right=0.5, top=0.5)
