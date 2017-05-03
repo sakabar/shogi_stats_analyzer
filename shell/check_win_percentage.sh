@@ -34,6 +34,10 @@ if [ ! -e $win_percentage_dir_abs/win_percentage.txt ]; then
     ln -s $win_percentage_dir_abs/win_percentage_b100.txt $win_percentage_dir_abs/win_percentage.txt
 fi
 
+#50局ごとの節目の譜棋ログをメモ
+cat $csv_file_all | awk -v log_size=$log_size '(log_size - NR) % 50 == 0 {print NR"\t"$0}' > $win_percentage_dir/checkpoint.csv
+
+
 # まだ反省していない棋譜をリストアップ
 shell/listup_not_reviewed_kifs.sh
 
