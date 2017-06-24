@@ -89,12 +89,12 @@ def get_win_p_freq_importance_dic(batch, win_num_dic, lose_num_dic):
 
     return ans_dic
 
-def draw_importrance(batch, transition_dic, transition_size, input_keys):
+def draw_importrance(batch, transition_dic, transition_size, input_tactics_list):
     plt.clf()
-    for key in input_keys:
-        x = list(range(batch, batch + len(transition_dic[key])))
-        y_importance = [tpl[2] for tpl in transition_dic[key]]
-        plt.plot(x, y_importance, label=key)
+    for tactics in input_tactics_list:
+        x = list(range(batch, batch + transition_size)) #indではなく1-originであることに注意
+        y_importance = [transition_dic.get((tactics, end_kif_id-1), (0.0, 0.0, 0.0))[2] for end_kif_id in x]
+        plt.plot(x, y_importance, label=tactics)
 
     plt.title("重要度推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("重要度")
@@ -119,12 +119,12 @@ def draw_importrance(batch, transition_dic, transition_size, input_keys):
     return
 
 
-def draw_tactics_win_p(batch, transition_dic, transition_size, input_keys):
+def draw_tactics_win_p(batch, transition_dic, transition_size, input_tactics_list):
     plt.clf()
-    for key in input_keys:
-        x = list(range(batch, batch + len(transition_dic[key])))
-        y_win_p = [tpl[0] for tpl in transition_dic[key]]
-        plt.plot(x, y_win_p, label=key)
+    for tactics in input_tactics_list:
+        x = list(range(batch, batch + transition_size)) #indではなく1-originであることに注意
+        y_win_p = [transition_dic.get((tactics, end_kif_id-1), (0.0, 0.0, 0.0))[0] for end_kif_id in x]
+        plt.plot(x, y_win_p, label=tactics)
 
     plt.title("勝率推移 (直近{0:d}局ごと)".format(batch))
     plt.ylabel("勝率")
@@ -445,7 +445,8 @@ def main(win_percentage_dir, batch, topn):
     gote_win_p_transition_list = [] #後手での勝率の推移を記録するためのリスト
     sente_ratio_transition_list = [] #batch中の先手番の割合
 
-    transition_dic = defaultdict(list) #(手番, 戦型)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
+    #以前の実装からキーの型を変更。以前の実装だと、ある戦型がbatch局中に現れなかったときはリストはappendされないため、リストの長さが想定よりも短くなることがあった。
+    transition_dic = {} #((手番, 戦型), batchの最後の棋譜ind)をキーとして、[(勝率, 遭遇率, 重要度)]を値とする辞書
 
     avg_rating_transition_list = [] #レーティングの推移を記録するためのリスト
     opponent_avg_rating_transition_list = [] #レーティングの推移を記録するためのリスト
@@ -543,8 +544,8 @@ def main(win_percentage_dir, batch, topn):
         avg_rating_transition_list.append(avg_rating_dict)
         opponent_avg_rating_transition_list.append(opponent_avg_rating_dict)
 
-        for key, val in wfi_dic.items():
-            transition_dic[key].append(val)
+        for tactics, val in wfi_dic.items():
+            transition_dic[(tactics, end_kif_ind)] = val
 
 
         #ここから詰み関連
@@ -596,7 +597,6 @@ def main(win_percentage_dir, batch, topn):
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, opponent_avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
         draw_transition(batch, transition_dic, transition_size, input_keys)
-
 
         with open("{0}/win_percentage_kifs_b{1:03d}.csv".format(win_percentage_dir, batch), 'w') as f:
             f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
