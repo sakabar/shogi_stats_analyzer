@@ -351,9 +351,9 @@ def draw_discover_overlook_mate(batch, transition_size, discover_transition_list
 
     return
 
-def draw_transition(batch, transition_dic, transition_size, input_keys):
-    draw_importrance(batch, transition_dic, transition_size, input_keys)
-    draw_tactics_win_p(batch, transition_dic, transition_size, input_keys)
+def draw_transition(batch, transition_dic, transition_size, input_tactics_list):
+    draw_importrance(batch, transition_dic, transition_size, input_tactics_list)
+    draw_tactics_win_p(batch, transition_dic, transition_size, input_tactics_list)
 
     return
 
@@ -585,7 +585,7 @@ def main(win_percentage_dir, batch, topn):
     output_win_lose_num_dic(batch, win_num_dic, lose_num_dic)
 
     if batch < log_size:
-        input_keys = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
+        input_tactics_list = [t[2] for t in sorted([(v[2], (1.0 - v[0]), k) for k, v in wfi_dic.items()], reverse=True)][0:topn]
         transition_size = log_size - batch + 1
         draw_byouyomi_rate(batch, kiremake_rate_transition_list, transition_size)
 
@@ -596,7 +596,7 @@ def main(win_percentage_dir, batch, topn):
 
         draw_avg_rating_transition(batch, transition_size, app_set, avg_rating_transition_list, opponent_avg_rating_transition_list, ignore_app_list)
         draw_sengo_win_p(batch, transition_size, all_win_p_transition_list, sente_win_p_transition_list, gote_win_p_transition_list, sente_ratio_transition_list)
-        draw_transition(batch, transition_dic, transition_size, input_keys)
+        draw_transition(batch, transition_dic, transition_size, input_tactics_list)
 
         with open("{0}/win_percentage_kifs_b{1:03d}.csv".format(win_percentage_dir, batch), 'w') as f:
             f.write("\n".join([",".join(list(tpl)) for tpl in last_batch_csv]))
